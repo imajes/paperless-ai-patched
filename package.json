@@ -1,5 +1,5 @@
 {
-  "name": "paperless-ai",
+  "name": "paperless-ai-patched",
   "version": "1.0.0",
   "description": "AI based Tag, correspondent and meta data generation",
   "main": "server.js",
@@ -46,7 +46,6 @@
     "nodemon": "^3.1.9",
     "openai": "^4.86.2",
     "rimraf": "^6.0.1",
-    "sqlite3": "^5.1.7",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "tiktoken": "^1.0.20"

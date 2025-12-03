@@ -1,13 +1,28 @@
-# 📄 Paperless-AI
+# 📄 Paperless-AI Patched
 
-[![GitHub commit activity](https://img.shields.io/github/commit-activity/t/clusterzx/paperless-ai)](https://github.com/clusterzx/paperless-ai/commits/main)
-[![Docker Pulls](https://img.shields.io/docker/pulls/clusterzx/paperless-ai)](https://hub.docker.com/r/clusterzx/paperless-ai)
-[![GitHub Stars](https://img.shields.io/github/stars/clusterzx)](https://github.com/clusterzx)
-[![License](https://img.shields.io/github/license/clusterzx/paperless-ai?cacheSeconds=1)](LICENSE)
+[![Docker Pulls](https://img.shields.io/docker/pulls/admonstrator/paperless-ai-patched)](https://hub.docker.com/r/admonstrator/paperless-ai-patched)
+[![GitHub Stars](https://img.shields.io/github/stars/Admonstrator/paperless-ai-patched)](https://github.com/Admonstrator/paperless-ai-patched)
+[![License](https://img.shields.io/github/license/Admonstrator/paperless-ai-patched)](LICENSE)
+[![Upstream](https://img.shields.io/badge/upstream-clusterzx%2Fpaperless--ai-blue)](https://github.com/clusterzx/paperless-ai)
+
+> **⚠️ Community Integration Fork** | All credit goes to [clusterzx](https://github.com/clusterzx) for the original [Paperless-AI](https://github.com/clusterzx/paperless-ai) project.
 
 ---
 
-**Paperless-AI** is an AI-powered extension for [Paperless-ngx](https://github.com/paperless-ngx/paperless-ngx) that brings automatic document classification, smart tagging, and semantic search using OpenAI-compatible APIs and Ollama.
+**Paperless-AI** is an AI-powered extension for [Paperless-ngx](https://github.com/paperless-ngx/paperless-ngx) created by [clusterzx](https://github.com/clusterzx) that brings automatic document classification, smart tagging, and semantic search using OpenAI-compatible APIs and Ollama.
+
+## 🔧 About This Fork
+
+This is a **community-maintained integration fork** that:
+- 🧪 Tests and merges pending upstream pull requests
+- 📦 Provides optimized Docker images (Lite & Full variants)
+- 🔒 Applies security updates and dependency maintenance
+- 🐛 Integrates community bug fixes
+- 📝 Offers additional documentation
+
+**Important:** This fork exists purely for experimentation and integration testing. All development credit belongs to the original author. Think of this as a "tinkering workshop" where community fixes are tested before potentially flowing back upstream.
+
+**Want the official version?** → [clusterzx/paperless-ai](https://github.com/clusterzx/paperless-ai)
 
 It enables **fully automated document workflows**, **contextual chat**, and **powerful customization** — all via an intuitive web interface.
 
@@ -100,24 +115,23 @@ npm run test
 
 ## 🤝 Contributing
 
-We welcome PRs and contributions!
+**Note:** This is an unofficial community fork. For core features and major changes, please contribute to the [upstream project](https://github.com/clusterzx/paperless-ai).
 
-```bash
-# Fork, clone, then:
-git checkout -b feature/YourFeature
-# After changes:
-git commit -m "Add YourFeature"
-git push origin feature/YourFeature
-```
+For this fork specifically:
+- 🐛 Bug reports for integration issues
+- 📦 Docker-related improvements
+- 📝 Documentation enhancements
+- 🧪 Testing feedback
 
-Then open a Pull Request via GitHub.
+Open an issue or PR if you have improvements to share!
 
 ---
 
 ## 🆘 Support & Community
 
-- [Issues](https://github.com/clusterzx/paperless-ai/issues)
-- [Discord](https://discord.gg/AvNekAfK38)
+- **Upstream Issues:** [clusterzx/paperless-ai/issues](https://github.com/clusterzx/paperless-ai/issues)
+- **Upstream Discord:** [Join Community](https://discord.gg/AvNekAfK38)
+- **Fork Issues:** [Admonstrator/paperless-ai-patched/issues](https://github.com/Admonstrator/paperless-ai-patched/issues)
 
 ---
 
@@ -125,9 +139,12 @@ Then open a Pull Request via GitHub.
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
+Original work Copyright © [clusterzx](https://github.com/clusterzx)  
+Fork maintained by [Admonstrator](https://github.com/Admonstrator)
+
 ---
 
-## 🙏 Support Development
+## 🙏 Support the Original Developer
 
 [![Patreon](https://img.shields.io/badge/Patreon-F96854?style=for-the-badge&logo=patreon&logoColor=white)](https://www.patreon.com/c/clusterzx)
 [![PayPal](https://img.shields.io/badge/PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://www.paypal.com/paypalme/bech0r)

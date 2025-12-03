@@ -1,53 +1,149 @@
+name: Docker Build and Push
+
 on:
-  release:
-    types: [published]  # Only triggers when a release is published
-  schedule:
-    - cron: "0 0 * * *" # Nightly build
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Docker image tag (e.g., v1.0.0, latest)'
+        required: true
+        default: 'latest'
+        type: string
+      also_tag_latest:
+        description: 'Also tag as "latest" (recommended for version releases)'
+        required: false
+        default: false
+        type: boolean
+      push_to_registry:
+        description: 'Push to Docker Hub after build'
+        required: true
+        default: true
+        type: boolean
+      build_full_image:
+        description: 'Also build Full image (with RAG/PyTorch, larger size ~2.5GB)'
+        required: false
+        default: false
+        type: boolean
+      build_rag_image:
+        description: 'Also build RAG service image (Dockerfile.rag)'
+        required: false
+        default: false
+        type: boolean
+
 jobs:
-  docker:
+  build-and-push:
     runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-        
+        uses: actions/checkout@v4
+      
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-        
+        uses: docker/setup-buildx-action@v3
+      
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        if: ${{ inputs.push_to_registry }}
+        uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GHCR_PAT }}
-          
-      - name: Extract metadata
+          username: admonstrator
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      
+      - name: Extract metadata for Docker
         id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: |
-            ${{ secrets.DOCKER_USERNAME }}/paperless-ai
-            ghcr.io/${{ github.repository_owner }}/paperless-ai
-          tags: |
-            type=schedule,pattern=nightly
-            type=semver,pattern={{version}},enable=${{ github.event_name == 'release' }}
-            type=raw,value=latest,enable=${{ github.event_name == 'release' }}
-            
-      - name: Build and push
-        uses: docker/build-push-action@v4
+        uses: docker/metadata-action@v5
+      - name: Build and push Lite Docker image (default)
+        uses: docker/build-push-action@v5
         with:
           context: .
-          push: true
-          platforms: linux/amd64,linux/arm64
-          tags: ${{ steps.meta.outputs.tags }}
+          file: ./Dockerfile.lite
+          push: ${{ inputs.push_to_registry }}
+          tags: |
+            admonstrator/paperless-ai-patched:${{ inputs.tag }}
+            admonstrator/paperless-ai-patched:${{ inputs.tag }}-lite
+            ${{ inputs.also_tag_latest && 'admonstrator/paperless-ai-patched:latest' || '' }}
+            ${{ inputs.also_tag_latest && 'admonstrator/paperless-ai-patched:latest-lite' || '' }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+      
+      - name: Build and push Full Docker image (optional)
+        if: ${{ inputs.build_full_image }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: ${{ inputs.push_to_registry }}
+          tags: |
+            admonstrator/paperless-ai-patched:${{ inputs.tag }}-full
+            ${{ inputs.also_tag_latest && 'admonstrator/paperless-ai-patched:latest-full' || '' }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+      - name: Image build summary
+        run: |
+          echo "### Docker Build Summary :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Lite Image (default, without RAG)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image**: admonstrator/paperless-ai-patched" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tags**: ${{ inputs.tag }}, ${{ inputs.tag }}-lite" >> $GITHUB_STEP_SUMMARY
+          echo "- **Size**: ~500-700 MB" >> $GITHUB_STEP_SUMMARY
+          echo "- **Platforms**: linux/amd64, linux/arm64" >> $GITHUB_STEP_SUMMARY
+          echo "- **Pushed**: ${{ inputs.push_to_registry }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.build_full_image }}" = "true" ]; then
+            echo "#### Full Image (optional, with RAG)" >> $GITHUB_STEP_SUMMARY
+            echo "- **Image**: admonstrator/paperless-ai-patched" >> $GITHUB_STEP_SUMMARY
+            echo "- **Tag**: ${{ inputs.tag }}-full" >> $GITHUB_STEP_SUMMARY
+            echo "- **Size**: ~2.5-2.7 GB" >> $GITHUB_STEP_SUMMARY
+            echo "- **Platforms**: linux/amd64, linux/arm64" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ "${{ inputs.build_rag_image }}" = "true" ]; then
+            echo "#### RAG Service Image" >> $GITHUB_STEP_SUMMARY
+            echo "- **Image**: admonstrator/paperless-ai-patched-rag" >> $GITHUB_STEP_SUMMARY
+            echo "- **Tag**: ${{ inputs.tag }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Platforms**: linux/amd64, linux/arm64" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ "${{ inputs.push_to_registry }}" = "true" ]; then
+            echo "---" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **Images successfully pushed to Docker Hub**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+            echo "# Lite version (default, recommended)" >> $GITHUB_STEP_SUMMARY
+            echo "docker pull admonstrator/paperless-ai-patched:${{ inputs.tag }}" >> $GITHUB_STEP_SUMMARY
+            if [ "${{ inputs.build_full_image }}" = "true" ]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "# Full version (with RAG, larger)" >> $GITHUB_STEP_SUMMARY
+              echo "docker pull admonstrator/paperless-ai-patched:${{ inputs.tag }}-full" >> $GITHUB_STEP_SUMMARY
+            fi
+            if [ "${{ inputs.build_rag_image }}" = "true" ]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "# RAG service only" >> $GITHUB_STEP_SUMMARY
+              echo "docker pull admonstrator/paperless-ai-patched-rag:${{ inputs.tag }}" >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ Images built locally only (not pushed)" >> $GITHUB_STEP_SUMMARY
+          fiho "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.build_rag_image }}" = "true" ]; then
+            echo "#### RAG Service Image" >> $GITHUB_STEP_SUMMARY
+            echo "- **Image**: admonstrator/paperless-ai-enhanced-rag" >> $GITHUB_STEP_SUMMARY
+            echo "- **Tag**: ${{ inputs.tag }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Platforms**: linux/amd64, linux/arm64" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ "${{ inputs.push_to_registry }}" = "true" ]; then
+            echo "---" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **Images successfully pushed to Docker Hub**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+            echo "docker pull admonstrator/paperless-ai-enhanced:${{ inputs.tag }}" >> $GITHUB_STEP_SUMMARY
+            if [ "${{ inputs.build_rag_image }}" = "true" ]; then
+              echo "docker pull admonstrator/paperless-ai-enhanced-rag:${{ inputs.tag }}" >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ Images built locally only (not pushed)" >> $GITHUB_STEP_SUMMARY
+          fi
