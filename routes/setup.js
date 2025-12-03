@@ -1243,80 +1243,95 @@ router.get('/api/history/load-progress', isAuthenticated, async (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
     res.flushHeaders();
 
+    // Helper function to send and flush immediately
+    const sendProgress = (data) => {
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+      if (res.flush) res.flush(); // Force immediate send
+    };
+
     // Step 1: Start
-    res.write(`data: ${JSON.stringify({ 
+    sendProgress({ 
       type: 'progress', 
       percentage: 0, 
       step: 1,
       totalSteps: 3,
       message: 'Connecting to database...' 
-    })}\n\n`);
+    });
+    
+    // Small delay to ensure first message is received
+    await new Promise(resolve => setTimeout(resolve, 50));
     
     // Step 2: Load history entries
-    res.write(`data: ${JSON.stringify({ 
+    sendProgress({ 
       type: 'progress', 
       percentage: 10, 
       step: 1,
       totalSteps: 3,
       message: 'Loading history entries...' 
-    })}\n\n`);
+    });
+    
     const allDocs = await documentModel.getAllHistory();
     
-    res.write(`data: ${JSON.stringify({ 
+    sendProgress({ 
       type: 'progress', 
       percentage: 33, 
       step: 1,
       totalSteps: 3,
       message: `Loaded ${allDocs.length} document entries`,
       details: { documents: allDocs.length }
-    })}\n\n`);
+    });
     
     // Step 3: Load tags
-    res.write(`data: ${JSON.stringify({ 
+    sendProgress({ 
       type: 'progress', 
       percentage: 40, 
       step: 2,
       totalSteps: 3,
       message: 'Loading tags from Paperless...' 
-    })}\n\n`);
+    });
+    
     const allTags = await paperlessService.getTags();
     
-    res.write(`data: ${JSON.stringify({ 
+    sendProgress({ 
       type: 'progress', 
       percentage: 66, 
       step: 2,
       totalSteps: 3,
       message: `Loaded ${allTags.length} tags`,
       details: { documents: allDocs.length, tags: allTags.length }
-    })}\n\n`);
+    });
     
     // Step 4: Processing data
-    res.write(`data: ${JSON.stringify({ 
+    sendProgress({ 
       type: 'progress', 
       percentage: 80, 
       step: 3,
       totalSteps: 3,
       message: `Processing ${allDocs.length} documents with ${allTags.length} tags...`,
       details: { documents: allDocs.length, tags: allTags.length }
-    })}\n\n`);
+    });
     
     // Give time for processing
     await new Promise(resolve => setTimeout(resolve, 100));
     
     // Step 5: Complete
-    res.write(`data: ${JSON.stringify({ 
+    sendProgress({ 
       type: 'complete', 
       message: `Ready: ${allDocs.length} documents with ${allTags.length} tags`,
       count: allDocs.length,
       details: { documents: allDocs.length, tags: allTags.length }
-    })}\n\n`);
+    });
+    
     res.end();
   } catch (error) {
     console.error('[ERROR] loading history with progress:', error);
     if (res.headersSent) {
-      res.write(`data: ${JSON.stringify({ type: 'error', message: 'Error loading history' })}\n\n`);
+      const errorData = `data: ${JSON.stringify({ type: 'error', message: 'Error loading history' })}\n\n`;
+      res.write(errorData);
+      if (res.flush) res.flush();
     } else {
       res.status(500).json({ error: 'Error loading history' });
     }
