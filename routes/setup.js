@@ -1230,6 +1230,10 @@ router.get('/history', async (req, res) => {
  *           text/event-stream:
  *             schema:
  *               type: string
+ *               example: |
+ *                 data: {"type":"progress","percentage":10,"message":"Loading history entries..."}
+ *                 
+ *                 data: {"type":"complete","message":"Loaded 150 documents with 25 tags","count":150}
  *       401:
  *         description: Unauthorized - authentication required
  */
@@ -1251,9 +1255,6 @@ router.get('/api/history/load-progress', isAuthenticated, async (req, res) => {
     
     // Step 3: Processing data
     res.write(`data: ${JSON.stringify({ type: 'progress', percentage: 80, message: `Processing ${allDocs.length} documents...` })}\n\n`);
-    
-    // Give some time for UI to update
-    await new Promise(resolve => setTimeout(resolve, 200));
     
     // Step 4: Complete
     res.write(`data: ${JSON.stringify({ 
