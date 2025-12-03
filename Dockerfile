@@ -15,8 +15,10 @@ RUN apt-get update && \
 COPY requirements.txt .
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
+# Use pip cache and parallel downloads for faster installation
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip && \
+    pip install -r requirements.txt && \
     find /opt/venv -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true && \
     find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
     find /opt/venv -name "*.pyc" -delete && \
@@ -30,9 +32,8 @@ WORKDIR /build
 
 # Copy package files and install dependencies
 COPY package*.json ./
-RUN npm ci --only=production && \
-    npm cache clean --force && \
-    rm -rf /root/.npm
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --only=production
 
 # Stage 3: Final runtime stage
 FROM node:23-slim
