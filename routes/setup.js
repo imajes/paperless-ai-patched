@@ -1264,7 +1264,11 @@ router.get('/api/history/load-progress', isAuthenticated, async (req, res) => {
     res.end();
   } catch (error) {
     console.error('[ERROR] loading history with progress:', error);
-    res.write(`data: ${JSON.stringify({ type: 'error', message: 'Error loading history' })}\n\n`);
+    if (res.headersSent) {
+      res.write(`data: ${JSON.stringify({ type: 'error', message: 'Error loading history' })}\n\n`);
+    } else {
+      res.status(500).json({ error: 'Error loading history' });
+    }
     res.end();
   }
 });
