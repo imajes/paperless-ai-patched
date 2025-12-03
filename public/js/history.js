@@ -349,6 +349,11 @@ class HistoryManager {
             }
         });
 
+        // Force Reload button handler
+        document.getElementById('forceReloadBtn')?.addEventListener('click', async () => {
+            await this.forceReloadFilters();
+        });
+
         // Validation modal handlers
         this.validateModal = document.getElementById('validateModal');
         document.getElementById('validateHistoryBtn')?.addEventListener('click', async () => {
@@ -654,6 +659,60 @@ class HistoryManager {
         }).join('');
 
         container.innerHTML = list;
+    }
+
+    async forceReloadFilters() {
+        const btn = document.getElementById('forceReloadBtn');
+        const icon = btn.querySelector('i');
+        
+        // Add spinning animation
+        icon.classList.add('fa-spin');
+        btn.disabled = true;
+        
+        try {
+            // Call SSE endpoint with force=true parameter
+            const response = await fetch('/api/history/load-progress?force=true');
+            if (!response.ok) throw new Error('Failed to reload filters');
+            
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+                
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = JSON.parse(line.slice(6));
+                        
+                        if (data.type === 'complete' && data.filters) {
+                            // Repopulate filters with fresh data
+                            this.populateFilters(data.filters);
+                            
+                            // Reload table
+                            this.table.ajax.reload();
+                            
+                            // Show success feedback
+                            btn.innerHTML = '<i class="fas fa-check"></i> Reloaded!';
+                            setTimeout(() => {
+                                btn.innerHTML = '<i class="fas fa-sync-alt"></i> Force Reload';
+                            }, 2000);
+                            
+                            return;
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('[ERROR] Force reload failed:', error);
+            alert('Failed to reload filters. Please try again.');
+        } finally {
+            icon.classList.remove('fa-spin');
+            btn.disabled = false;
+        }
     }
 }
 

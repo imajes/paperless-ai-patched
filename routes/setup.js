@@ -1233,6 +1233,9 @@ router.get('/history', async (req, res) => {
  */
 router.get('/api/history/load-progress', isAuthenticated, async (req, res) => {
   try {
+    // Check if force reload is requested (bypass cache)
+    const forceReload = req.query.force === 'true';
+    
     // Set headers for Server-Sent Events
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -1252,7 +1255,7 @@ router.get('/api/history/load-progress', isAuthenticated, async (req, res) => {
       percentage: 0, 
       step: 1,
       totalSteps: 3,
-      message: 'Connecting to database...' 
+      message: forceReload ? 'Force reloading filters...' : 'Connecting to database...' 
     });
     
     // Small delay to ensure first message is received
@@ -1264,10 +1267,18 @@ router.get('/api/history/load-progress', isAuthenticated, async (req, res) => {
       percentage: 10, 
       step: 1,
       totalSteps: 2,
-      message: 'Loading tags from Paperless...' 
+      message: forceReload ? 'Force loading tags from Paperless...' : 'Loading tags from Paperless...' 
     });
     
-    const allTags = await getCachedTags();
+    // If force reload, bypass cache
+    let allTags;
+    if (forceReload) {
+      allTags = await paperlessService.getTags();
+      tagCache.data = allTags;
+      tagCache.timestamp = Date.now();
+    } else {
+      allTags = await getCachedTags();
+    }
     
     sendProgress({ 
       type: 'progress', 
