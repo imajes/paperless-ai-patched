@@ -24,6 +24,37 @@ This is a **community-maintained integration fork** that:
 
 **Want the official version?** → [clusterzx/paperless-ai](https://github.com/clusterzx/paperless-ai)
 
+### 🆕 What's Different in This Fork?
+
+**Performance Enhancements**:
+- ⚡ **PERF-001**: History table with SQL pagination (~25-50x faster with 1000+ documents)
+- 🎯 Tag caching with 5-minute TTL (95% reduction in API calls)
+- 🔄 Force reload button to bypass cache when needed
+
+**Bug Fixes**:
+- ✅ **PR-772**: Fixed infinite retry loop with exponential backoff
+- ✅ **PR-747**: History validation tool with real-time progress indicators
+- ✅ SSE buffering fix for instant progress feedback
+- ✅ Security: Authentication added to all history endpoints
+
+**Docker Optimizations**:
+- 📦 **DOCKER-001**: Optimized images (Lite ~400MB, Full ~1.2GB)
+- 🏗️ Separate build/push workflow for reliability
+- 🔧 Multi-stage builds with clean dependency installation
+
+**Documentation**:
+- 📚 Comprehensive COPILOT.md for developers and AI assistants
+- 📋 Detailed fix documentation in `Included_Fixes/`
+- 🔗 Swagger API documentation improvements
+
+**UI/UX**:
+- 🌓 Enhanced dark mode support
+- 📱 Responsive mobile menu
+- ⏱️ Real-time progress bars with step counts
+- 🎨 Improved loading indicators
+
+Full changelog: [`Included_Fixes/README.md`](Included_Fixes/README.md)
+
 It enables **fully automated document workflows**, **contextual chat**, and **powerful customization** — all via an intuitive web interface.
 
 > 💡 Just ask:  
