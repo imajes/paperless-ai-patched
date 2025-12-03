@@ -1035,19 +1035,13 @@ router.get('/chat/init/:documentId', async (req, res) => {
  */
 router.get('/history', async (req, res) => {
   try {
-    const allTags = await paperlessService.getTags();
-    const tagMap = new Map(allTags.map(tag => [tag.id, tag]));
-
-    // Get all correspondents for filter dropdown
-    const historyDocuments = await documentModel.getAllHistory();
-    const allCorrespondents = [...new Set(historyDocuments.map(doc => doc.correspondent))]
-      .filter(Boolean).sort();
-
+    // Don't preload data - let the frontend load it with progress tracking
+    // This allows the page to render immediately
     res.render('history', {
       version: configFile.PAPERLESS_AI_VERSION,
       filters: {
-        allTags: allTags,
-        allCorrespondents: allCorrespondents
+        allTags: [],  // Will be loaded by JavaScript via /api/history/load-progress
+        allCorrespondents: []  // Will be populated when DataTable loads
       }
     });
   } catch (error) {
@@ -1317,12 +1311,20 @@ router.get('/api/history/load-progress', isAuthenticated, async (req, res) => {
     // Give time for processing
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    // Step 5: Complete
+    // Step 5: Build filter data
+    const allCorrespondents = [...new Set(allDocs.map(doc => doc.correspondent))]
+      .filter(Boolean).sort();
+    
+    // Step 6: Complete with filter data
     sendProgress({ 
       type: 'complete', 
       message: `Ready: ${allDocs.length} documents with ${allTags.length} tags`,
       count: allDocs.length,
-      details: { documents: allDocs.length, tags: allTags.length }
+      details: { documents: allDocs.length, tags: allTags.length },
+      filters: {
+        tags: allTags,
+        correspondents: allCorrespondents
+      }
     });
     
     res.end();

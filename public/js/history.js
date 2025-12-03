@@ -147,6 +147,11 @@ class HistoryManager {
                     }
                     statusText.textContent = 'Complete!';
                     
+                    // Populate filters if provided
+                    if (data.filters) {
+                        this.populateFilters(data.filters);
+                    }
+                    
                     // Small delay to show completion
                     setTimeout(() => {
                         loadingIndicator.style.display = 'none';
@@ -185,6 +190,34 @@ class HistoryManager {
                 }, 1000);
             };
         });
+    }
+
+    populateFilters(filters) {
+        // Populate tag filter
+        const tagFilter = document.getElementById('tagFilter');
+        if (tagFilter && filters.tags) {
+            // Keep the "All Tags" option
+            tagFilter.innerHTML = '<option value="">All Tags</option>';
+            filters.tags.forEach(tag => {
+                const option = document.createElement('option');
+                option.value = tag.id;
+                option.textContent = tag.name;
+                tagFilter.appendChild(option);
+            });
+        }
+        
+        // Populate correspondent filter
+        const correspondentFilter = document.getElementById('correspondentFilter');
+        if (correspondentFilter && filters.correspondents) {
+            // Keep the "All Correspondents" option
+            correspondentFilter.innerHTML = '<option value="">All Correspondents</option>';
+            filters.correspondents.forEach(corr => {
+                const option = document.createElement('option');
+                option.value = corr;
+                option.textContent = corr;
+                correspondentFilter.appendChild(option);
+            });
+        }
     }
 
     initializeDataTable() {
