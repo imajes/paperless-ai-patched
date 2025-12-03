@@ -76,11 +76,32 @@ class HistoryManager {
         loadingIndicator.style.display = 'block';
         tableContainer.style.display = 'none';
 
+        // Set a timeout to force fallback if EventSource takes too long to connect
+        const connectionTimeout = setTimeout(() => {
+            console.warn('EventSource connection timeout - falling back to direct loading');
+            if (statusText) {
+                statusText.textContent = 'Loading taking longer than expected, continuing...';
+            }
+        }, 5000);
+
         // Use EventSource for real-time progress updates
         const eventSource = new EventSource('/api/history/load-progress');
+        let hasReceivedData = false;
 
         return new Promise((resolve, reject) => {
+            // Set overall timeout as safety net
+            const overallTimeout = setTimeout(() => {
+                clearTimeout(connectionTimeout);
+                console.warn('Overall timeout reached - forcing table display');
+                eventSource.close();
+                loadingIndicator.style.display = 'none';
+                tableContainer.style.display = 'block';
+                resolve();
+            }, 15000);
             eventSource.onmessage = (event) => {
+                hasReceivedData = true;
+                clearTimeout(connectionTimeout);
+                
                 const data = JSON.parse(event.data);
                 
                 if (data.type === 'progress') {
@@ -95,6 +116,7 @@ class HistoryManager {
                 } 
                 else if (data.type === 'complete') {
                     // Loading complete
+                    clearTimeout(overallTimeout);
                     eventSource.close();
                     progressBar.style.width = '100%';
                     if (progressContainer) {
@@ -110,6 +132,7 @@ class HistoryManager {
                     }, 300);
                 }
                 else if (data.type === 'error') {
+                    clearTimeout(overallTimeout);
                     eventSource.close();
                     // Don't hide loading indicator or show table - let catch handler manage error state
                     reject(new Error(data.message || 'Loading failed'));
@@ -118,11 +141,25 @@ class HistoryManager {
 
             eventSource.onerror = (error) => {
                 console.error('EventSource error:', error);
+                console.error('EventSource readyState:', eventSource.readyState);
+                clearTimeout(connectionTimeout);
+                clearTimeout(overallTimeout);
                 eventSource.close();
-                // Fallback: continue anyway
-                loadingIndicator.style.display = 'none';
-                tableContainer.style.display = 'block';
-                resolve();
+                
+                // If we never received any data, this is likely a connection/auth issue
+                if (!hasReceivedData) {
+                    console.error('EventSource failed to connect - possible auth or network error');
+                    if (statusText) {
+                        statusText.textContent = 'Connection failed, loading table directly...';
+                    }
+                }
+                
+                // Fallback: continue anyway after brief delay
+                setTimeout(() => {
+                    loadingIndicator.style.display = 'none';
+                    tableContainer.style.display = 'block';
+                    resolve();
+                }, 1000);
             };
         });
     }
