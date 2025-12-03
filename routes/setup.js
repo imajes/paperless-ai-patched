@@ -1613,6 +1613,7 @@ router.post('/api/reset-documents', isAuthenticated, async (req, res) => {
  *     description: |
  *       Checks each history entry stored locally and verifies the corresponding document still exists in Paperless-ngx.
  *       Uses Server-Sent Events (SSE) to stream real-time progress updates.
+ *       Processes documents in parallel batches (50 at a time) for faster validation.
  *       Returns progress updates and final list of missing documents.
  *     tags:
  *       - Documents
@@ -1651,31 +1652,47 @@ router.get('/api/history/validate', isAuthenticated, async (req, res) => {
     // Send initial progress
     res.write(`data: ${JSON.stringify({ type: 'progress', current: 0, total, missing: 0 })}\n\n`);
 
-    // For each history entry, try to fetch the document from Paperless
+    // Process documents in parallel batches for faster validation
     const missing = [];
-    let current = 0;
+    const BATCH_SIZE = 50; // Process 50 documents at a time
+    let processed = 0;
 
-    for (const h of allHistory) {
-      current++;
+    // Split into batches
+    for (let i = 0; i < allHistory.length; i += BATCH_SIZE) {
+      const batch = allHistory.slice(i, i + BATCH_SIZE);
       
-      try {
-        // paperlessService.getDocument will throw on non-2xx (including 404)
-        await paperlessService.getDocument(h.document_id);
-      } catch (error) {
-        // Treat any error fetching the document as missing
-        missing.push({ document_id: h.document_id, title: h.title || null });
-      }
+      // Process batch in parallel
+      const results = await Promise.allSettled(
+        batch.map(async (h) => {
+          try {
+            await paperlessService.getDocument(h.document_id);
+            return { success: true, doc: h };
+          } catch (error) {
+            return { success: false, doc: h };
+          }
+        })
+      );
       
-      // Send progress update every 5 documents or on last one
-      if (current % 5 === 0 || current === total) {
-        res.write(`data: ${JSON.stringify({ 
-          type: 'progress', 
-          current, 
-          total, 
-          missing: missing.length,
-          percentage: Math.round((current / total) * 100)
-        })}\n\n`);
-      }
+      // Collect missing documents from this batch
+      results.forEach((result) => {
+        if (result.status === 'fulfilled' && !result.value.success) {
+          missing.push({ 
+            document_id: result.value.doc.document_id, 
+            title: result.value.doc.title || null 
+          });
+        }
+      });
+      
+      processed += batch.length;
+      
+      // Send progress update after each batch
+      res.write(`data: ${JSON.stringify({ 
+        type: 'progress', 
+        current: processed, 
+        total, 
+        missing: missing.length,
+        percentage: Math.round((processed / total) * 100)
+      })}\n\n`);
     }
 
     // Send final result
