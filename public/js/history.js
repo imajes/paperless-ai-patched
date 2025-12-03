@@ -48,10 +48,19 @@ class HistoryManager {
             })
             .catch((error) => {
                 console.error('Failed to load history:', error);
-                // Show error message to user
+                // Show error message to user and update accessibility state
+                const loadingIndicator = document.getElementById('historyLoadingIndicator');
                 const statusText = document.getElementById('historyLoadStatus');
+                const progressContainer = document.getElementById('historyProgressContainer');
+                
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'block';
+                }
                 if (statusText) {
                     statusText.textContent = 'Error loading history. Please refresh the page.';
+                }
+                if (progressContainer) {
+                    progressContainer.setAttribute('aria-label', 'Loading failed');
                 }
             });
     }
@@ -102,8 +111,7 @@ class HistoryManager {
                 }
                 else if (data.type === 'error') {
                     eventSource.close();
-                    loadingIndicator.style.display = 'none';
-                    tableContainer.style.display = 'block';
+                    // Don't hide loading indicator or show table - let catch handler manage error state
                     reject(new Error(data.message || 'Loading failed'));
                 }
             };
