@@ -112,7 +112,30 @@ class HistoryManager {
                     if (progressContainer) {
                         progressContainer.setAttribute('aria-valuenow', percentage);
                     }
-                    statusText.textContent = data.message || 'Loading...';
+                    
+                    // Build detailed status message
+                    let statusMessage = data.message || 'Loading...';
+                    
+                    // Add step information if available
+                    if (data.step && data.totalSteps) {
+                        statusMessage = `[Step ${data.step}/${data.totalSteps}] ${statusMessage}`;
+                    }
+                    
+                    // Add details if available
+                    if (data.details) {
+                        const detailParts = [];
+                        if (data.details.documents !== undefined) {
+                            detailParts.push(`${data.details.documents} docs`);
+                        }
+                        if (data.details.tags !== undefined) {
+                            detailParts.push(`${data.details.tags} tags`);
+                        }
+                        if (detailParts.length > 0) {
+                            statusMessage += ` (${detailParts.join(', ')})`;
+                        }
+                    }
+                    
+                    statusText.textContent = statusMessage;
                 } 
                 else if (data.type === 'complete') {
                     // Loading complete

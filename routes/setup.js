@@ -1245,22 +1245,72 @@ router.get('/api/history/load-progress', isAuthenticated, async (req, res) => {
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
 
-    // Step 1: Load history entries
-    res.write(`data: ${JSON.stringify({ type: 'progress', percentage: 10, message: 'Loading history entries...' })}\n\n`);
+    // Step 1: Start
+    res.write(`data: ${JSON.stringify({ 
+      type: 'progress', 
+      percentage: 0, 
+      step: 1,
+      totalSteps: 3,
+      message: 'Connecting to database...' 
+    })}\n\n`);
+    
+    // Step 2: Load history entries
+    res.write(`data: ${JSON.stringify({ 
+      type: 'progress', 
+      percentage: 10, 
+      step: 1,
+      totalSteps: 3,
+      message: 'Loading history entries...' 
+    })}\n\n`);
     const allDocs = await documentModel.getAllHistory();
     
-    // Step 2: Load tags
-    res.write(`data: ${JSON.stringify({ type: 'progress', percentage: 50, message: 'Loading tags data...' })}\n\n`);
+    res.write(`data: ${JSON.stringify({ 
+      type: 'progress', 
+      percentage: 33, 
+      step: 1,
+      totalSteps: 3,
+      message: `Loaded ${allDocs.length} document entries`,
+      details: { documents: allDocs.length }
+    })}\n\n`);
+    
+    // Step 3: Load tags
+    res.write(`data: ${JSON.stringify({ 
+      type: 'progress', 
+      percentage: 40, 
+      step: 2,
+      totalSteps: 3,
+      message: 'Loading tags from Paperless...' 
+    })}\n\n`);
     const allTags = await paperlessService.getTags();
     
-    // Step 3: Processing data
-    res.write(`data: ${JSON.stringify({ type: 'progress', percentage: 80, message: `Processing ${allDocs.length} documents...` })}\n\n`);
+    res.write(`data: ${JSON.stringify({ 
+      type: 'progress', 
+      percentage: 66, 
+      step: 2,
+      totalSteps: 3,
+      message: `Loaded ${allTags.length} tags`,
+      details: { documents: allDocs.length, tags: allTags.length }
+    })}\n\n`);
     
-    // Step 4: Complete
+    // Step 4: Processing data
+    res.write(`data: ${JSON.stringify({ 
+      type: 'progress', 
+      percentage: 80, 
+      step: 3,
+      totalSteps: 3,
+      message: `Processing ${allDocs.length} documents with ${allTags.length} tags...`,
+      details: { documents: allDocs.length, tags: allTags.length }
+    })}\n\n`);
+    
+    // Give time for processing
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Step 5: Complete
     res.write(`data: ${JSON.stringify({ 
       type: 'complete', 
-      message: `Loaded ${allDocs.length} documents with ${allTags.length} tags`,
-      count: allDocs.length
+      message: `Ready: ${allDocs.length} documents with ${allTags.length} tags`,
+      count: allDocs.length,
+      details: { documents: allDocs.length, tags: allTags.length }
     })}\n\n`);
     res.end();
   } catch (error) {
