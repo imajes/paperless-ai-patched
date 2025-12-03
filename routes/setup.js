@@ -1344,7 +1344,7 @@ function clearTagCache() {
   tagCache.timestamp = 0;
 }
 
-router.get('/api/history', async (req, res) => {
+router.get('/api/history', isAuthenticated, async (req, res) => {
   try {
     const draw = parseInt(req.query.draw);
     const start = parseInt(req.query.start) || 0;
@@ -1504,7 +1504,7 @@ router.post('/api/history/clear-cache', isAuthenticated, async (req, res) => {
   }
 });
 
-router.post('/api/reset-all-documents', async (req, res) => {
+router.post('/api/reset-all-documents', isAuthenticated, async (req, res) => {
   try {
     await documentModel.deleteAllDocuments();
     res.json({ success: true });
@@ -1589,7 +1589,7 @@ router.post('/api/reset-all-documents', async (req, res) => {
  *                   type: string
  *                   example: "Error resetting documents"
  */
-router.post('/api/reset-documents', async (req, res) => {
+router.post('/api/reset-documents', isAuthenticated, async (req, res) => {
   try {
     const { ids } = req.body;
     if (!ids || !Array.isArray(ids)) {
@@ -1636,7 +1636,7 @@ router.post('/api/reset-documents', async (req, res) => {
  *       500:
  *         description: Server error during validation
  */
-router.get('/api/history/validate', async (req, res) => {
+router.get('/api/history/validate', isAuthenticated, async (req, res) => {
   try {
     // Set headers for Server-Sent Events
     res.setHeader('Content-Type', 'text/event-stream');
