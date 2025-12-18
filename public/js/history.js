@@ -414,6 +414,30 @@ class HistoryManager {
             });
         });
 
+        // Handle "Select All Docs" button
+        const selectAllBtn = document.getElementById('selectAllDocsBtn');
+        if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', () => {
+                const checkboxes = document.querySelectorAll('.doc-select');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = true;
+                });
+                this.updateSelectAllState();
+            });
+        }
+
+        // Handle "Deselect All Docs" button
+        const deselectAllBtn = document.getElementById('deselectAllDocsBtn');
+        if (deselectAllBtn) {
+            deselectAllBtn.addEventListener('click', () => {
+                const checkboxes = document.querySelectorAll('.doc-select');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                this.updateSelectAllState();
+            });
+        }
+
         // Initial state check
         this.updateSelectAllState();
     }
