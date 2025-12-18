@@ -414,30 +414,6 @@ class HistoryManager {
             });
         });
 
-        // Handle "Select All Docs" button
-        const selectAllBtn = document.getElementById('selectAllDocsBtn');
-        if (selectAllBtn) {
-            selectAllBtn.addEventListener('click', () => {
-                const checkboxes = document.querySelectorAll('.doc-select');
-                checkboxes.forEach(checkbox => {
-                    checkbox.checked = true;
-                });
-                this.updateSelectAllState();
-            });
-        }
-
-        // Handle "Deselect All Docs" button
-        const deselectAllBtn = document.getElementById('deselectAllDocsBtn');
-        if (deselectAllBtn) {
-            deselectAllBtn.addEventListener('click', () => {
-                const checkboxes = document.querySelectorAll('.doc-select');
-                checkboxes.forEach(checkbox => {
-                    checkbox.checked = false;
-                });
-                this.updateSelectAllState();
-            });
-        }
-
         // Initial state check
         this.updateSelectAllState();
     }
@@ -642,47 +618,34 @@ class HistoryManager {
                 </div>
                 <p class="text-sm text-gray-600">These documents exist in history but not in Paperless-ngx. Select which ones to remove:</p>
             </div>
-            <div class="mb-3">
-                <label class="flex items-center gap-2 cursor-pointer p-2 bg-gray-100 rounded">
-                    <input type="checkbox" id="selectAllMissing" class="rounded" />
-                    <span class="font-medium">Select All</span>
-                </label>
+            <div class="mb-3 flex gap-2">
+                <button id="selectAllMissingBtn" class="px-3 py-1.5 bg-green-500 text-white text-sm rounded hover:bg-green-600 transition-colors">
+                    <i class="fas fa-check-square"></i> Alle markieren
+                </button>
+                <button id="deselectAllMissingBtn" class="px-3 py-1.5 bg-gray-500 text-white text-sm rounded hover:bg-gray-600 transition-colors">
+                    <i class="fas fa-square"></i> Alle abwählen
+                </button>
             </div>
             ${list}
         `;
         
-        // Add select all functionality
-        const selectAllCheckbox = document.getElementById('selectAllMissing');
-        if (selectAllCheckbox) {
-            selectAllCheckbox.addEventListener('change', (e) => {
-                const checkboxes = container.querySelectorAll('input[type="checkbox"]:not(#selectAllMissing)');
-                checkboxes.forEach(cb => cb.checked = e.target.checked);
+        // Add select all/deselect all button functionality
+        const selectAllBtn = document.getElementById('selectAllMissingBtn');
+        const deselectAllBtn = document.getElementById('deselectAllMissingBtn');
+        
+        if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', () => {
+                const checkboxes = container.querySelectorAll('input[type="checkbox"][value]');
+                checkboxes.forEach(cb => cb.checked = true);
             });
         }
-    }
-
-    renderValidateResults(missing) {
-        const container = document.getElementById('validateResults');
-        if (!container) return;
-
-        if (!missing || missing.length === 0) {
-            container.innerHTML = '<div class="text-green-600">No missing documents found.</div>';
-            return;
+        
+        if (deselectAllBtn) {
+            deselectAllBtn.addEventListener('click', () => {
+                const checkboxes = container.querySelectorAll('input[type="checkbox"][value]');
+                checkboxes.forEach(cb => cb.checked = false);
+            });
         }
-
-        const list = missing.map(item => {
-            return `
-                <div class="flex items-center justify-between p-2 border-b">
-                    <label class="flex items-center gap-2">
-                        <input type="checkbox" value="${item.document_id}" />
-                        <span class="font-medium">${item.title || ('Document ' + item.document_id)}</span>
-                    </label>
-                    <span class="text-sm text-gray-500">ID: ${item.document_id}</span>
-                </div>
-            `;
-        }).join('');
-
-        container.innerHTML = list;
     }
 
     async forceReloadFilters() {
