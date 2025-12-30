@@ -100,8 +100,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=admonstrator/paperless-ai-patched:buildcache
+          cache-to:  type=registry,ref=admonstrator/paperless-ai-patched:buildcache,mode=max
           outputs: type=image,name=admonstrator/paperless-ai-patched,push=false
 
   # Job 2: Build Full Image (optional)
@@ -139,8 +139,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=admonstrator/paperless-ai-patched:buildcache
+          cache-to:  type=registry,ref=admonstrator/paperless-ai-patched:buildcache,mode=max
           outputs: type=image,name=admonstrator/paperless-ai-patched,push=false
 
   # Job 3: Push Lite Image to Docker Hub
@@ -182,7 +182,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
-          cache-from: type=gha
+          cache-from: type=registry,ref=admonstrator/paperless-ai-patched:buildcache
 
   # Job 4: Push Full Image to Docker Hub (optional)
   push-full:
@@ -222,7 +222,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
-          cache-from: type=gha
+          cache-from: type=registry,ref=admonstrator/paperless-ai-patched:buildcache
 
   # Job 5: Summary
   summary:
