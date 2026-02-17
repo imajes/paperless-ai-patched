@@ -2,7 +2,8 @@ const {
     calculateTokens, 
     calculateTotalPromptTokens, 
     truncateToTokenLimit, 
-    writePromptToFile 
+    writePromptToFile,
+    supportsTemperature
 } = require('./serviceUtils');
 const axios = require('axios');
 const OpenAI = require('openai');
@@ -72,7 +73,7 @@ class ManualService {
                 content: content
             }
             ],
-            ...(model !== 'o3-mini' && { temperature: 0.3 }),
+            ...(supportsTemperature(model) && { temperature: 0.3 }),
         });
     
         let jsonContent = response.choices[0].message.content;
@@ -107,9 +108,10 @@ class ManualService {
             .join(', ');
     
         const systemPrompt = process.env.SYSTEM_PROMPT;
+        const deploymentModel = process.env.AZURE_DEPLOYMENT_NAME;
         await writePromptToFile(systemPrompt, content);
         const response = await this.openai.chat.completions.create({
-            model: process.env.AZURE_DEPLOYMENT_NAME,
+            model: deploymentModel,
             messages: [
             {
                 role: "system",
@@ -120,7 +122,7 @@ class ManualService {
                 content: content
             }
             ],
-            temperature: 0.3,
+            ...(supportsTemperature(deploymentModel) && { temperature: 0.3 }),
         });
     
         let jsonContent = response.choices[0].message.content;
@@ -168,7 +170,7 @@ class ManualService {
                     content: content
                 }
                 ],
-                ...(model !== 'o3-mini' && { temperature: 0.3 }),
+                ...(supportsTemperature(model) && { temperature: 0.3 }),
             });
         
             let jsonContent = response.choices[0].message.content;
