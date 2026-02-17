@@ -2245,7 +2245,7 @@
                   "openaiModel": {
                     "type": "string",
                     "description": "OpenAI model to use for analysis",
-                    "example": "gpt-4"
+                    "example": "gpt-5-nano"
                   },
                   "ollamaUrl": {
                     "type": "string",
@@ -3134,7 +3134,7 @@
                   "openaiModel": {
                     "type": "string",
                     "description": "OpenAI model to use for analysis",
-                    "example": "gpt-4"
+                    "example": "gpt-5-nano"
                   },
                   "ollamaUrl": {
                     "type": "string",

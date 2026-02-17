@@ -3723,7 +3723,7 @@ router.get('/health', async (req, res) => {
  *               openaiModel:
  *                 type: string
  *                 description: OpenAI model to use for analysis
- *                 example: "gpt-4"
+ *                 example: "gpt-5-nano"
  *               ollamaUrl:
  *                 type: string
  *                 description: URL for Ollama API (required when aiProvider is 'ollama')
@@ -4124,7 +4124,7 @@ router.post('/setup', express.json(), async (req, res) => {
  *               openaiModel:
  *                 type: string
  *                 description: OpenAI model to use for analysis
- *                 example: "gpt-4"
+ *                 example: "gpt-5-nano"
  *               ollamaUrl:
  *                 type: string
  *                 description: URL for Ollama API (required when aiProvider is 'ollama')

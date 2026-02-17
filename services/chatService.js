@@ -129,7 +129,7 @@ class ChatService {
         });
         
         const stream = await openai.chat.completions.create({
-          model: process.env.OPENAI_MODEL || 'gpt-4',
+          model: process.env.OPENAI_MODEL || 'gpt-5-nano',
           messages: chatData.messages,
           stream: true,
         });

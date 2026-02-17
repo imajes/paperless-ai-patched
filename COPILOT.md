@@ -270,7 +270,7 @@ AI_PROVIDER=openai|ollama|custom|azure
 
 # OpenAI
 OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-4
+OPENAI_MODEL=gpt-5-nano
 
 # Ollama
 OLLAMA_API_URL=http://localhost:11434
