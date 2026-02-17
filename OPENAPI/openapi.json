@@ -1721,6 +1721,40 @@
         }
       }
     },
+    "/api/history/load-progress": {
+      "get": {
+        "summary": "Load history data with progress updates (Server-Sent Events)",
+        "description": "Preloads history and tag data with real-time progress updates via SSE.\nThis endpoint should be called before displaying the history table to warm up the cache.\nRequires authentication via JWT token or API key.\n",
+        "tags": [
+          "Documents",
+          "API"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Loading in progress (SSE stream)",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "example": "data: {\"type\":\"progress\",\"percentage\":10,\"message\":\"Loading history entries...\"}\n\ndata: {\"type\":\"complete\",\"message\":\"Loaded 150 documents with 25 tags\",\"count\":150}\n"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required"
+          }
+        }
+      }
+    },
     "/api/reset-all-documents": {
       "post": {
         "summary": "Reset all processed documents",
@@ -1785,6 +1819,52 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/history/clear-cache": {
+      "post": {
+        "summary": "Clear tag cache",
+        "description": "Forces cache invalidation to load fresh filter data on next request",
+        "tags": [
+          "History",
+          "API"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cache cleared successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Cache cleared successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required"
+          },
+          "500": {
+            "description": "Server error"
           }
         }
       }
@@ -1896,6 +1976,43 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/history/validate": {
+      "get": {
+        "summary": "Validate history entries against Paperless-ngx (Server-Sent Events)",
+        "description": "Checks each history entry stored locally and verifies the corresponding document still exists in Paperless-ngx.\nUses Server-Sent Events (SSE) to stream real-time progress updates.\nProcesses documents in parallel batches (50 at a time) for faster validation.\nReturns progress updates and final list of missing documents.\n",
+        "tags": [
+          "Documents",
+          "API"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Validation in progress (SSE stream)",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "example": "data: {\"type\":\"progress\",\"current\":50,\"total\":100,\"missing\":3,\"percentage\":50}\n\ndata: {\"type\":\"complete\",\"missing\":[{\"document_id\":123,\"title\":\"Test Doc\"}]}\n"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required"
+          },
+          "500": {
+            "description": "Server error during validation"
           }
         }
       }

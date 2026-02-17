@@ -2151,7 +2151,7 @@ router.get('/setup', async (req, res) => {
       PAPERLESS_USERNAME: process.env.PAPERLESS_USERNAME || '',
       AI_PROVIDER: process.env.AI_PROVIDER || 'openai',
       OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
-      OPENAI_MODEL: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      OPENAI_MODEL: process.env.OPENAI_MODEL || 'gpt-5-nano',
       OLLAMA_API_URL: process.env.OLLAMA_API_URL || 'http://localhost:11434',
       OLLAMA_MODEL: process.env.OLLAMA_MODEL || 'llama3.2',
       SCAN_INTERVAL: process.env.SCAN_INTERVAL || '*/30 * * * *',
@@ -2950,7 +2950,7 @@ router.get('/settings', async (req, res) => {
     PAPERLESS_USERNAME: process.env.PAPERLESS_USERNAME || '',
     AI_PROVIDER: process.env.AI_PROVIDER || 'openai',
     OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
-    OPENAI_MODEL: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    OPENAI_MODEL: process.env.OPENAI_MODEL || 'gpt-5-nano',
     OLLAMA_API_URL: process.env.OLLAMA_API_URL || 'http://localhost:11434',
     OLLAMA_MODEL: process.env.OLLAMA_MODEL || 'llama3.2',
     SCAN_INTERVAL: process.env.SCAN_INTERVAL || '*/30 * * * *',
@@ -4023,7 +4023,7 @@ router.post('/setup', express.json(), async (req, res) => {
         });
       }
       config.OPENAI_API_KEY = openaiKey;
-      config.OPENAI_MODEL = openaiModel || 'gpt-4o-mini';
+      config.OPENAI_MODEL = openaiModel || 'gpt-5-nano';
     } else if (aiProvider === 'ollama') {
       const isOllamaValid = await setupService.validateOllamaConfig(ollamaUrl, ollamaModel);
       if (!isOllamaValid) {

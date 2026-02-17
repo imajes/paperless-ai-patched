@@ -87,7 +87,7 @@ class SetupService {
       try {
         const openai = new OpenAI({ apiKey });
         const response = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
+          model: "gpt-5-nano",
           messages: [{ role: "user", content: "Test" }],
         });
         const now = new Date();
