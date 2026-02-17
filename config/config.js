@@ -82,6 +82,25 @@ console.log('Loaded environment variables:', {
   EXTERNAL_API: externalApiConfig.enabled === 'yes' ? 'enabled' : 'disabled'
 });
 
+// Load system prompt from file or environment variable
+const fs = require('fs');
+let systemPrompt;
+
+try {
+  // Try to load from system-prompt.md file
+  const promptPath = path.join(currentDir, 'system-prompt.md');
+  systemPrompt = fs.readFileSync(promptPath, 'utf8').trim();
+  console.log('Loaded system prompt from system-prompt.md');
+} catch (error) {
+  // Fallback to environment variable if file doesn't exist
+  systemPrompt = process.env.SYSTEM_PROMPT || '';
+  if (systemPrompt) {
+    console.log('Loaded system prompt from SYSTEM_PROMPT environment variable');
+  } else {
+    console.warn('Warning: No system prompt found in file or environment variable');
+  }
+}
+
 module.exports = {
   PAPERLESS_AI_VERSION: '3.0.9',
   CONFIGURED: false,
@@ -123,6 +142,7 @@ module.exports = {
   aiProvider: process.env.AI_PROVIDER || 'openai',
   scanInterval: process.env.SCAN_INTERVAL || '*/30 * * * *',
   useExistingData: process.env.USE_EXISTING_DATA || 'no',
+  systemPrompt: systemPrompt,  // System prompt loaded from file or env
   // Add limit functions to config
   limitFunctions: {
     activateTagging: limitFunctions.activateTagging,

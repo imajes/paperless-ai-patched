@@ -268,20 +268,30 @@ class SetupService {
       const dataDir = path.dirname(this.envPath);
       await fs.mkdir(dataDir, { recursive: true });
 
+      // Handle SYSTEM_PROMPT separately - write to system-prompt.md
+      let systemPrompt = null;
+      if (config.SYSTEM_PROMPT) {
+        systemPrompt = config.SYSTEM_PROMPT;
+        const promptPath = path.join(process.cwd(), 'system-prompt.md');
+        await fs.writeFile(promptPath, systemPrompt);
+        console.log('Saved system prompt to system-prompt.md');
+      }
+
+      // Write other config to .env (excluding SYSTEM_PROMPT)
       const envContent = Object.entries(config)
+        .filter(([key]) => key !== "SYSTEM_PROMPT")
         .map(([key, value]) => {
-          if (key === "SYSTEM_PROMPT") {
-            return `${key}=\`${value}\n\``;
-          }
           return `${key}=${value}`;
         })
         .join('\n');
 
       await fs.writeFile(this.envPath, envContent);
       
-      // Reload environment variables
+      // Reload environment variables (excluding SYSTEM_PROMPT since it's in a file)
       Object.entries(config).forEach(([key, value]) => {
-        process.env[key] = value;
+        if (key !== "SYSTEM_PROMPT") {
+          process.env[key] = value;
+        }
       });
     } catch (error) {
       console.error('Error saving config:', error.message);

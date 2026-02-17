@@ -59,7 +59,7 @@ class ManualService {
             .map(tag => tag.name)
             .join(', ');
         const model = process.env.OPENAI_MODEL;
-        const systemPrompt = process.env.SYSTEM_PROMPT;
+        const systemPrompt = config.systemPrompt;
         await writePromptToFile(systemPrompt, content);
         const response = await this.openai.chat.completions.create({
             model: model,
@@ -107,7 +107,7 @@ class ManualService {
             .map(tag => tag.name)
             .join(', ');
     
-        const systemPrompt = process.env.SYSTEM_PROMPT;
+        const systemPrompt = config.systemPrompt;
         const deploymentModel = process.env.AZURE_DEPLOYMENT_NAME;
         await writePromptToFile(systemPrompt, content);
         const response = await this.openai.chat.completions.create({
@@ -156,7 +156,7 @@ class ManualService {
                 .map(tag => tag.name)
                 .join(', ');
         
-            const systemPrompt = process.env.SYSTEM_PROMPT;
+            const systemPrompt = config.systemPrompt;
             const model = config.custom.model;
             const response = await this.openai.chat.completions.create({
                 model: model,
@@ -191,7 +191,7 @@ class ManualService {
     
     async _analyzeOllama(content, existingTags) {
         try {
-        const prompt = process.env.SYSTEM_PROMPT;
+        const prompt = config.systemPrompt;
 
         const getAvailableMemory = async () => {
             const totalMemory = os.totalmem();

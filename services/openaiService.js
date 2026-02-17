@@ -176,11 +176,11 @@ class OpenAIService {
         Pre-existing tags: ${existingTagsList}\n\n
         Pre-existing correspondents: ${existingCorrespondentList}\n\n
         Pre-existing document types: ${existingDocumentTypesList.join(', ')}\n\n
-        ` + process.env.SYSTEM_PROMPT + '\n\n' + config.mustHavePrompt.replace('%CUSTOMFIELDS%', customFieldsStr);
+        ` + config.systemPrompt + '\n\n' + config.mustHavePrompt.replace('%CUSTOMFIELDS%', customFieldsStr);
         promptTags = '';
       } else {
         config.mustHavePrompt = config.mustHavePrompt.replace('%CUSTOMFIELDS%', customFieldsStr);
-        systemPrompt = process.env.SYSTEM_PROMPT + '\n\n' + config.mustHavePrompt;
+        systemPrompt = config.systemPrompt + '\n\n' + config.mustHavePrompt;
         promptTags = '';
       }
 
