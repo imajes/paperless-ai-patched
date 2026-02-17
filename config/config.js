@@ -4,11 +4,22 @@ const envPath = path.join(currentDir, 'data', '.env');
 console.log('Loading .env from:', envPath); // Debug log
 require('dotenv').config({ path: envPath });
 
+// Import token limit helper
+const { getModelTokenLimits } = require('../services/serviceUtils');
+
 // Helper function to parse boolean-like env vars
 const parseEnvBoolean = (value, defaultValue = 'yes') => {
   if (!value) return defaultValue;
   return value.toLowerCase() === 'true' || value === '1' || value.toLowerCase() === 'yes' ? 'yes' : 'no';
 };
+
+// Get model-specific defaults
+const currentModel = process.env.OPENAI_MODEL || 'gpt-5-nano';
+const modelLimits = getModelTokenLimits(currentModel);
+
+// Use model-specific token limits as defaults
+const defaultTokenLimit = modelLimits.contextWindow;
+const defaultResponseTokens = Math.min(modelLimits.maxOutputTokens, 4096); // Cap at 4096 for most use cases
 
 // Initialize limit functions with defaults
 const limitFunctions = {
@@ -56,8 +67,8 @@ module.exports = {
   CONFIGURED: false,
   disableAutomaticProcessing: process.env.DISABLE_AUTOMATIC_PROCESSING || 'no',
   predefinedMode: process.env.PROCESS_PREDEFINED_DOCUMENTS,
-  tokenLimit: process.env.TOKEN_LIMIT || 128000,
-  responseTokens: process.env.RESPONSE_TOKENS || 1000,
+  tokenLimit: process.env.TOKEN_LIMIT || defaultTokenLimit,
+  responseTokens: process.env.RESPONSE_TOKENS || defaultResponseTokens,
   addAIProcessedTag: process.env.ADD_AI_PROCESSED_TAG || 'no',
   addAIProcessedTags: process.env.AI_PROCESSED_TAG_NAME || 'ai-processed',
   // AI restrictions config
