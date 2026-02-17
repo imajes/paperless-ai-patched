@@ -2,17 +2,35 @@ const tiktoken = require('tiktoken');
 const fs = require('fs').promises;
 const path = require('path');
 
+/**
+ * Check if a model supports the temperature parameter
+ * GPT-5 models and o-series models do not support temperature
+ * @param {string} model - The model name to check
+ * @returns {boolean} - True if the model supports temperature
+ */
+function supportsTemperature(model) {
+    if (!model) return true; // Default to true if no model specified
+    
+    // Models that do NOT support temperature parameter
+    const noTemperatureModels = [
+        // GPT-5 family does not support temperature
+        'gpt-5', 'gpt-5-nano', 'gpt-5-mini', 'gpt-5-standard',
+        'chatgpt-5o-latest', 'gpt-5-audio-preview',
+        // O-series models do not support temperature
+        'o1', 'o1-2024-12-17', 'o1-preview', 'o1-mini', 
+        'o3-mini', 'o3', 'o4-mini'
+    ];
+    
+    // Check if the model matches any of the no-temperature models
+    return !noTemperatureModels.some(noTempModel => model.includes(noTempModel));
+}
+
 // Map non-OpenAI models to compatible OpenAI encodings or use estimation
 function getCompatibleModel(model) {
     const openaiModels = [
         // GPT-5 family (5o series)
         'gpt-5', 'gpt-5-nano', 'gpt-5-mini', 'gpt-5-standard',
         'chatgpt-5o-latest', 'gpt-5-audio-preview',
-        
-        // GPT-4o family (legacy)
-        'gpt-4o', 'chatgpt-4o-latest', 'gpt-4o-mini', 'gpt-4o-audio-preview',
-        'gpt-4o-audio-preview-2024-12-17', 'gpt-4o-audio-preview-2024-10-01',
-        'gpt-4o-mini-audio-preview', 'gpt-4o-mini-audio-preview-2024-12-17',
         
         // GPT-4.1 family
         'gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano',
@@ -347,6 +365,7 @@ module.exports = {
     calculateTotalPromptTokens,
     truncateToTokenLimit,
     writePromptToFile,
+    supportsTemperature,
     validateUrl,
     validateApiUrl,
     validateUrlAgainstBase
