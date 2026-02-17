@@ -64,19 +64,19 @@ if (o3MiniCall.model === 'o3-mini' && !('temperature' in o3MiniCall)) {
     process.exit(1);
 }
 
-// Test 4: Verify GPT-4 still includes temperature
-console.log('Test 4: GPT-4 API call construction (should include temperature)');
-const gpt4Call = simulateApiCall('gpt-4-turbo');
-console.log('  Model:', gpt4Call.model);
-console.log('  Has temperature:', 'temperature' in gpt4Call);
-console.log('  Temperature value:', gpt4Call.temperature);
+// Test 4: Verify GPT-4.5 still includes temperature
+console.log('Test 4: GPT-4.5 API call construction (should include temperature)');
+const gpt45Call = simulateApiCall('gpt-4.5');
+console.log('  Model:', gpt45Call.model);
+console.log('  Has temperature:', 'temperature' in gpt45Call);
+console.log('  Temperature value:', gpt45Call.temperature);
 
-if (gpt4Call.model === 'gpt-4-turbo' && 
-    'temperature' in gpt4Call &&
-    gpt4Call.temperature === 0.3) {
-    console.log('  ✓ PASS: GPT-4 call structured correctly with temperature\n');
+if (gpt45Call.model === 'gpt-4.5' && 
+    'temperature' in gpt45Call &&
+    gpt45Call.temperature === 0.3) {
+    console.log('  ✓ PASS: GPT-4.5 call structured correctly with temperature\n');
 } else {
-    console.error('  ✗ FAIL: GPT-4 call structure incorrect\n');
+    console.error('  ✗ FAIL: GPT-4.5 call structure incorrect\n');
     process.exit(1);
 }
 
@@ -112,8 +112,8 @@ const scenarios = [
     { model: 'gpt-5-nano', shouldHaveTemp: false, scenario: 'Default GPT-5 model' },
     { model: 'gpt-5-mini', shouldHaveTemp: false, scenario: 'Mid-tier GPT-5 model' },
     { model: 'gpt-5', shouldHaveTemp: false, scenario: 'Full GPT-5 model' },
-    { model: 'o3-mini', shouldHaveTemp: false, scenario: 'O-series reasoning model' },
-    { model: 'gpt-4.1', shouldHaveTemp: true, scenario: 'Legacy GPT-4.1 model' },
+    { model: 'o3-mini', shouldHaveTemp: false, scenario: 'O3 reasoning model' },
+    { model: 'gpt-4.5', shouldHaveTemp: true, scenario: 'Current GPT-4.5 model' },
 ];
 
 let allScenariosPass = true;
@@ -146,3 +146,4 @@ console.log('✓ Legacy models correctly include temperature in API calls');
 console.log('✓ All service modules load and export correctly');
 console.log('✓ Real-world scenarios validated');
 console.log('\n✨ The OpenAI service is ready for GPT-5 models!');
+console.log('Note: Only current models supported (GPT-5, o3-mini, GPT-4.5, GPT-4.1).');
