@@ -25,6 +25,81 @@ function supportsTemperature(model) {
     return !noTemperatureModels.some(noTempModel => model.includes(noTempModel));
 }
 
+/**
+ * Get token limits for a specific model
+ * Returns context window size and max output tokens based on model capabilities
+ * @param {string} model - The model name
+ * @returns {Object} - Object with contextWindow and maxOutputTokens
+ */
+function getModelTokenLimits(model) {
+    if (!model) {
+        // Default to gpt-5-nano limits
+        return { contextWindow: 200000, maxOutputTokens: 8192 };
+    }
+    
+    const modelLower = model.toLowerCase();
+    
+    // GPT-5 family - highest context windows
+    if (modelLower.includes('gpt-5-standard') || modelLower === 'gpt-5') {
+        return { contextWindow: 1000000, maxOutputTokens: 16384 };
+    }
+    if (modelLower.includes('gpt-5-nano') || modelLower.includes('gpt-5-mini') || 
+        modelLower.includes('chatgpt-5o-latest') || modelLower.includes('gpt-5-audio-preview')) {
+        return { contextWindow: 200000, maxOutputTokens: 8192 };
+    }
+    
+    // O-series models
+    if (modelLower.includes('o3-mini') || modelLower.includes('o1-preview') || 
+        modelLower.includes('o1-2024-12-17') || modelLower === 'o1') {
+        return { contextWindow: 200000, maxOutputTokens: 8192 };
+    }
+    if (modelLower.includes('o1-mini')) {
+        return { contextWindow: 128000, maxOutputTokens: 8192 };
+    }
+    if (modelLower.includes('o3') || modelLower.includes('o4-mini')) {
+        return { contextWindow: 200000, maxOutputTokens: 8192 };
+    }
+    
+    // GPT-4.5 family
+    if (modelLower.includes('gpt-4.5')) {
+        return { contextWindow: 128000, maxOutputTokens: 8192 };
+    }
+    
+    // GPT-4 turbo models
+    if (modelLower.includes('gpt-4-turbo') || modelLower.includes('gpt-4-1106') || 
+        modelLower.includes('gpt-4-0125')) {
+        return { contextWindow: 128000, maxOutputTokens: 4096 };
+    }
+    
+    // GPT-4.1 family
+    if (modelLower.includes('gpt-4.1')) {
+        return { contextWindow: 128000, maxOutputTokens: 8192 };
+    }
+    
+    // GPT-4 32k
+    if (modelLower.includes('gpt-4-32k')) {
+        return { contextWindow: 32768, maxOutputTokens: 4096 };
+    }
+    
+    // Base GPT-4
+    if (modelLower.includes('gpt-4')) {
+        return { contextWindow: 8192, maxOutputTokens: 4096 };
+    }
+    
+    // GPT-3.5 turbo with 16k
+    if (modelLower.includes('gpt-3.5-turbo-16k')) {
+        return { contextWindow: 16385, maxOutputTokens: 4096 };
+    }
+    
+    // GPT-3.5 turbo base
+    if (modelLower.includes('gpt-3.5-turbo')) {
+        return { contextWindow: 16385, maxOutputTokens: 4096 };
+    }
+    
+    // Default fallback - conservative limits for unknown models
+    return { contextWindow: 128000, maxOutputTokens: 4096 };
+}
+
 // Map non-OpenAI models to compatible OpenAI encodings or use estimation
 function getCompatibleModel(model) {
     const openaiModels = [
@@ -366,6 +441,7 @@ module.exports = {
     truncateToTokenLimit,
     writePromptToFile,
     supportsTemperature,
+    getModelTokenLimits,
     validateUrl,
     validateApiUrl,
     validateUrlAgainstBase
