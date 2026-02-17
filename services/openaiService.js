@@ -38,6 +38,64 @@ class OpenAIService {
     }
   }
 
+  /**
+   * Generate JSON schema for document analysis response
+   * This schema enforces structure for the Responses API
+   * @param {Array} customFields - Custom fields configuration
+   * @returns {Object} - JSON schema object
+   */
+  _getDocumentAnalysisSchema(customFields = []) {
+    const schema = {
+      type: 'object',
+      properties: {
+        title: {
+          type: 'string',
+          description: 'Concise, meaningful title for the document'
+        },
+        correspondent: {
+          type: 'string',
+          description: 'Sender or institution (shortest form of company name)'
+        },
+        tags: {
+          type: 'array',
+          items: { type: 'string' },
+          minItems: 1,
+          maxItems: 4,
+          description: 'Relevant thematic tags (1-4 tags)'
+        },
+        document_type: {
+          type: 'string',
+          description: 'Type of document (e.g., Invoice, Contract, Receipt)'
+        },
+        document_date: {
+          type: 'string',
+          pattern: '^\\d{4}-\\d{2}-\\d{2}$',
+          description: 'Document date in YYYY-MM-DD format'
+        },
+        language: {
+          type: 'string',
+          minLength: 2,
+          maxLength: 3,
+          description: 'Document language code (e.g., en, de, es)'
+        }
+      },
+      required: ['title', 'correspondent', 'tags', 'document_date', 'language'],
+      additionalProperties: false
+    };
+
+    // Add custom_fields if any are defined
+    if (customFields && customFields.length > 0) {
+      schema.properties.custom_fields = {
+        type: 'object',
+        description: 'Custom field values extracted from document',
+        additionalProperties: true
+      };
+      schema.required.push('custom_fields');
+    }
+
+    return schema;
+  }
+
   async analyzeDocument(content, existingTags = [], existingCorrespondentList = [], existingDocumentTypesList = [], id, customPrompt = null, options = {}) {
     const cachePath = path.join('./public/images', `${id}.png`);
     try {
@@ -176,23 +234,31 @@ class OpenAIService {
 
       await writePromptToFile(systemPrompt, truncatedContent);
 
-      const response = await this.client.chat.completions.create({
+      // Use Responses API for better JSON schema validation
+      const response = await this.client.responses.create({
         model: model,
-        messages: [
-          {
-            role: "system",
-            content: systemPrompt
-          },
-          {
-            role: "user",
-            content: truncatedContent
+        instructions: systemPrompt,  // System instructions (replaces system message)
+        input: truncatedContent,      // User input (replaces user message)
+        response_format: {
+          type: 'json_schema',
+          json_schema: {
+            name: 'document_analysis',
+            strict: true,
+            schema: this._getDocumentAnalysisSchema(customFieldsObj.custom_fields)
           }
-        ],
+        },
         ...(supportsTemperature(model) && { temperature: 0.3 }),
       });
 
-      if (!response?.choices?.[0]?.message?.content) {
-        throw new Error('Invalid API response structure');
+      // Check for API errors
+      if (response.error) {
+        console.error('[ERROR] API returned error:', response.error);
+        throw new Error(`API error: ${response.error.message || 'Unknown error'}`);
+      }
+
+      // Check if response is incomplete
+      if (response.incomplete_details) {
+        console.warn('[WARNING] Response incomplete:', response.incomplete_details);
       }
 
       console.log(`[DEBUG] [${timestamp}] OpenAI request sent`);
@@ -205,41 +271,61 @@ class OpenAIService {
         totalTokens: usage.total_tokens
       };
 
-      let jsonContent = response.choices[0].message.content;
-      jsonContent = jsonContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
-      let parsedResponse;
-      try {
-        parsedResponse = JSON.parse(jsonContent);
-        //write to file and append to the file (txt)
-        fs.appendFile('./logs/response.txt', jsonContent, (err) => {
-          if (err) throw err;
-        });
-      } catch (error) {
-        console.error('Failed to parse JSON response:', error);
-        // Check if the response indicates the content is too minimal or API can't process it
-        if (jsonContent && (jsonContent.toLowerCase().includes("i'm sorry") ||
-            jsonContent.toLowerCase().includes("i cannot") ||
-            jsonContent.toLowerCase().includes("insufficient"))) {
-          console.warn(`Document ${id} has insufficient content for analysis`);
-          // Return a default structure instead of throwing to prevent retry loops
+      // With Responses API, we get parsed output directly - no manual parsing needed!
+      const parsedResponse = response.output_parsed;
+      
+      // Fallback: if output_parsed is null, try to parse output_text
+      if (!parsedResponse) {
+        console.warn('[WARNING] output_parsed is null, falling back to output_text');
+        try {
+          let jsonContent = response.output_text || '';
+          // Clean up any markdown code blocks (shouldn't be needed with Responses API)
+          jsonContent = jsonContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+          
+          const fallbackResponse = JSON.parse(jsonContent);
+          
+          // Log response for debugging
+          fs.appendFile('./logs/response.txt', jsonContent, (err) => {
+            if (err) console.error('Failed to write response log:', err);
+          });
+          
           return {
-            document: {
-              tags: [],
-              correspondent: "Unknown",
-              title: `Document ${id}`,
-              document_date: new Date().toISOString().split('T')[0],
-              document_type: "Document",
-              language: "und"
-            },
+            document: fallbackResponse,
             metrics: mappedUsage,
-            truncated: false,
-            error: 'Insufficient content for AI analysis'
+            truncated: truncatedContent.length < content.length
           };
+        } catch (error) {
+          console.error('Failed to parse JSON response:', error);
+          // Check if the response indicates insufficient content
+          const outputText = response.output_text || '';
+          if (outputText.toLowerCase().includes("i'm sorry") ||
+              outputText.toLowerCase().includes("i cannot") ||
+              outputText.toLowerCase().includes("insufficient")) {
+            console.warn(`Document ${id} has insufficient content for analysis`);
+            return {
+              document: {
+                tags: [],
+                correspondent: "Unknown",
+                title: `Document ${id}`,
+                document_date: new Date().toISOString().split('T')[0],
+                document_type: "Document",
+                language: "und"
+              },
+              metrics: mappedUsage,
+              truncated: false,
+              error: 'Insufficient content for AI analysis'
+            };
+          }
+          throw new Error('Invalid JSON response from API');
         }
-        throw new Error('Invalid JSON response from API');
       }
 
+      // Log successful parsed response
+      fs.appendFile('./logs/response.txt', JSON.stringify(parsedResponse, null, 2), (err) => {
+        if (err) console.error('Failed to write response log:', err);
+      });
+
+      // Validate response structure (schema should enforce this, but double-check)
       if (!parsedResponse || !Array.isArray(parsedResponse.tags) || typeof parsedResponse.correspondent !== 'string') {
         throw new Error('Invalid response structure: missing tags array or correspondent string');
       }
@@ -319,25 +405,27 @@ class OpenAIService {
       // Truncate content if necessary
       const truncatedContent = await truncateToTokenLimit(content, availableTokens);
       const model = process.env.OPENAI_MODEL;
-      // Make API request
-      const response = await this.client.chat.completions.create({
+      
+      // Use Responses API for better JSON validation
+      const response = await this.client.responses.create({
         model: model,
-        messages: [
-          {
-            role: "system",
-            content: prompt + musthavePrompt
-          },
-          {
-            role: "user",
-            content: truncatedContent
+        instructions: prompt + musthavePrompt,
+        input: truncatedContent,
+        response_format: {
+          type: 'json_schema',
+          json_schema: {
+            name: 'playground_analysis',
+            strict: true,
+            schema: this._getDocumentAnalysisSchema([]) // No custom fields in playground
           }
-        ],
+        },
         ...(supportsTemperature(model) && { temperature: 0.3 }),
       });
 
-      // Handle response
-      if (!response?.choices?.[0]?.message?.content) {
-        throw new Error('Invalid API response structure');
+      // Check for API errors
+      if (response.error) {
+        console.error('[ERROR] API returned error:', response.error);
+        throw new Error(`API error: ${response.error.message || 'Unknown error'}`);
       }
 
       // Log token usage
@@ -351,38 +439,47 @@ class OpenAIService {
         totalTokens: usage.total_tokens
       };
 
-      let jsonContent = response.choices[0].message.content;
-      jsonContent = jsonContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
-      let parsedResponse;
-      try {
-        parsedResponse = JSON.parse(jsonContent);
-      } catch (error) {
-        console.error('Failed to parse JSON response:', error);
-        // Check if the response indicates the content is too minimal or API can't process it
-        if (jsonContent && (jsonContent.toLowerCase().includes("i'm sorry") ||
-            jsonContent.toLowerCase().includes("i cannot") ||
-            jsonContent.toLowerCase().includes("insufficient"))) {
-          console.warn('Document has insufficient content for analysis');
-          // Return a default structure instead of throwing to prevent retry loops
+      // With Responses API, use output_parsed directly
+      const parsedResponse = response.output_parsed;
+      
+      // Fallback if output_parsed is null
+      if (!parsedResponse) {
+        console.warn('[WARNING] output_parsed is null, falling back to output_text');
+        try {
+          let jsonContent = response.output_text || '';
+          jsonContent = jsonContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+          const fallbackResponse = JSON.parse(jsonContent);
           return {
-            document: {
-              tags: [],
-              correspondent: "Unknown",
-              title: "Document",
-              document_date: new Date().toISOString().split('T')[0],
-              document_type: "Document",
-              language: "und"
-            },
+            document: fallbackResponse,
             metrics: mappedUsage,
-            truncated: false,
-            error: 'Insufficient content for AI analysis'
+            truncated: truncatedContent.length < content.length
           };
+        } catch (error) {
+          console.error('Failed to parse JSON response:', error);
+          const outputText = response.output_text || '';
+          if (outputText.toLowerCase().includes("i'm sorry") ||
+              outputText.toLowerCase().includes("i cannot") ||
+              outputText.toLowerCase().includes("insufficient")) {
+            console.warn('Document has insufficient content for analysis');
+            return {
+              document: {
+                tags: [],
+                correspondent: "Unknown",
+                title: "Document",
+                document_date: new Date().toISOString().split('T')[0],
+                document_type: "Document",
+                language: "und"
+              },
+              metrics: mappedUsage,
+              truncated: false,
+              error: 'Insufficient content for AI analysis'
+            };
+          }
+          throw new Error('Invalid JSON response from API');
         }
-        throw new Error('Invalid JSON response from API');
       }
 
-      // Validate response structure
+      // Validate response structure (schema enforces this, but double-check)
       if (!parsedResponse || !Array.isArray(parsedResponse.tags) || typeof parsedResponse.correspondent !== 'string') {
         throw new Error('Invalid response structure: missing tags array or correspondent string');
       }
