@@ -5,7 +5,11 @@ const path = require('path');
 // Map non-OpenAI models to compatible OpenAI encodings or use estimation
 function getCompatibleModel(model) {
     const openaiModels = [
-        // GPT-4o family
+        // GPT-5 family (5o series)
+        'gpt-5', 'gpt-5-nano', 'gpt-5-mini', 'gpt-5-standard',
+        'chatgpt-5o-latest', 'gpt-5-audio-preview',
+        
+        // GPT-4o family (legacy)
         'gpt-4o', 'chatgpt-4o-latest', 'gpt-4o-mini', 'gpt-4o-audio-preview',
         'gpt-4o-audio-preview-2024-12-17', 'gpt-4o-audio-preview-2024-10-01',
         'gpt-4o-mini-audio-preview', 'gpt-4o-mini-audio-preview-2024-12-17',
@@ -47,7 +51,7 @@ function estimateTokensForNonOpenAI(text) {
 }
 
 // Calculate tokens for a given text
-async function calculateTokens(text, model = process.env.OPENAI_MODEL || "gpt-4o-mini") {
+async function calculateTokens(text, model = process.env.OPENAI_MODEL || "gpt-5-nano") {
     try {
         const compatibleModel = getCompatibleModel(model);
         
@@ -72,7 +76,7 @@ async function calculateTokens(text, model = process.env.OPENAI_MODEL || "gpt-4o
 }
 
 // Calculate total tokens for a system prompt and additional prompts
-async function calculateTotalPromptTokens(systemPrompt, additionalPrompts = [], model = process.env.OPENAI_MODEL || "gpt-4o-mini") {
+async function calculateTotalPromptTokens(systemPrompt, additionalPrompts = [], model = process.env.OPENAI_MODEL || "gpt-5-nano") {
     let totalTokens = 0;
 
     // Count tokens for system prompt
@@ -93,7 +97,7 @@ async function calculateTotalPromptTokens(systemPrompt, additionalPrompts = [], 
 }
 
 // Truncate text to fit within token limit
-async function truncateToTokenLimit(text, maxTokens, model = process.env.OPENAI_MODEL || "gpt-4o-mini") {
+async function truncateToTokenLimit(text, maxTokens, model = process.env.OPENAI_MODEL || "gpt-5-nano") {
     try {
         const compatibleModel = getCompatibleModel(model);
         
