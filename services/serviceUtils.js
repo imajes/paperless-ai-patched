@@ -4,7 +4,7 @@ const path = require('path');
 
 /**
  * Check if a model supports the temperature parameter
- * GPT-5 models and o-series models do not support temperature
+ * GPT-5 models and o3-mini do not support temperature
  * @param {string} model - The model name to check
  * @returns {boolean} - True if the model supports temperature
  */
@@ -16,9 +16,8 @@ function supportsTemperature(model) {
         // GPT-5 family does not support temperature
         'gpt-5', 'gpt-5-nano', 'gpt-5-mini', 'gpt-5-standard',
         'chatgpt-5o-latest', 'gpt-5-audio-preview',
-        // O-series models do not support temperature
-        'o1', 'o1-2024-12-17', 'o1-preview', 'o1-mini', 
-        'o3-mini', 'o3', 'o4-mini'
+        // O3-mini does not support temperature
+        'o3-mini'
     ];
     
     // Check if the model matches any of the no-temperature models
@@ -48,15 +47,8 @@ function getModelTokenLimits(model) {
         return { contextWindow: 200000, maxOutputTokens: 8192 };
     }
     
-    // O-series models
-    if (modelLower.includes('o3-mini') || modelLower.includes('o1-preview') || 
-        modelLower.includes('o1-2024-12-17') || modelLower === 'o1') {
-        return { contextWindow: 200000, maxOutputTokens: 8192 };
-    }
-    if (modelLower.includes('o1-mini')) {
-        return { contextWindow: 128000, maxOutputTokens: 8192 };
-    }
-    if (modelLower.includes('o3') || modelLower.includes('o4-mini')) {
+    // O3-mini model
+    if (modelLower.includes('o3-mini')) {
         return { contextWindow: 200000, maxOutputTokens: 8192 };
     }
     
@@ -65,39 +57,13 @@ function getModelTokenLimits(model) {
         return { contextWindow: 128000, maxOutputTokens: 8192 };
     }
     
-    // GPT-4 turbo models
-    if (modelLower.includes('gpt-4-turbo') || modelLower.includes('gpt-4-1106') || 
-        modelLower.includes('gpt-4-0125')) {
-        return { contextWindow: 128000, maxOutputTokens: 4096 };
-    }
-    
     // GPT-4.1 family
     if (modelLower.includes('gpt-4.1')) {
         return { contextWindow: 128000, maxOutputTokens: 8192 };
     }
     
-    // GPT-4 32k
-    if (modelLower.includes('gpt-4-32k')) {
-        return { contextWindow: 32768, maxOutputTokens: 4096 };
-    }
-    
-    // Base GPT-4
-    if (modelLower.includes('gpt-4')) {
-        return { contextWindow: 8192, maxOutputTokens: 4096 };
-    }
-    
-    // GPT-3.5 turbo with 16k
-    if (modelLower.includes('gpt-3.5-turbo-16k')) {
-        return { contextWindow: 16385, maxOutputTokens: 4096 };
-    }
-    
-    // GPT-3.5 turbo base
-    if (modelLower.includes('gpt-3.5-turbo')) {
-        return { contextWindow: 16385, maxOutputTokens: 4096 };
-    }
-    
-    // Default fallback - conservative limits for unknown models
-    return { contextWindow: 128000, maxOutputTokens: 4096 };
+    // Default fallback - conservative limits for unknown/custom models
+    return { contextWindow: 200000, maxOutputTokens: 8192 };
 }
 
 // Map non-OpenAI models to compatible OpenAI encodings or use estimation
@@ -110,21 +76,11 @@ function getCompatibleModel(model) {
         // GPT-4.1 family
         'gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano',
         
-        // GPT-3.5 family
-        'gpt-3.5-turbo', 'gpt-3.5-turbo-16k', 'gpt-3.5-turbo-instruct',
-        
-        // GPT-4 family
-        'gpt-4', 'gpt-4-32k', 'gpt-4-1106-preview', 'gpt-4-0125-preview',
-        'gpt-4-turbo-2024-04-09', 'gpt-4-turbo', 'gpt-4-turbo-preview',
-        
         // GPT-4.5 family
         'gpt-4.5-preview-2025-02-27', 'gpt-4.5-preview', 'gpt-4.5',
         
-        // O-series models
-        'o1', 'o1-2024-12-17', 'o1-preview', 'o1-mini', 'o3-mini', 'o3', 'o4-mini',
-        
-        // Legacy models that tiktoken might support
-        'text-davinci-003', 'text-davinci-002'
+        // O3-mini model
+        'o3-mini'
     ];
     
     // If it's a known OpenAI model, return as-is

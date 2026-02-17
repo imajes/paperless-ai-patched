@@ -30,44 +30,44 @@ if (!allGpt5TestsPassed) {
   console.log('\n✅ Test 1 PASSED\n');
 }
 
-// Test 2: O-series models should NOT support temperature
-console.log('Test 2: O-series models should NOT support temperature');
-const oSeriesModels = ['o1', 'o1-2024-12-17', 'o1-preview', 'o1-mini', 'o3-mini', 'o3', 'o4-mini'];
-let allOSeriesTestsPassed = true;
+// Test 2: O3-mini model should NOT support temperature
+console.log('Test 2: O3-mini model should NOT support temperature');
+const o3Mini = ['o3-mini'];
+let o3TestPassed = true;
 
-for (const model of oSeriesModels) {
+for (const model of o3Mini) {
   const supports = supportsTemperature(model);
   if (supports) {
     console.error(`  ✗ FAIL: ${model} should NOT support temperature, but function returned true`);
-    allOSeriesTestsPassed = false;
+    o3TestPassed = false;
   } else {
     console.log(`  ✓ PASS: ${model} correctly does NOT support temperature`);
   }
 }
 
-if (!allOSeriesTestsPassed) {
+if (!o3TestPassed) {
   console.error('\n❌ Test 2 FAILED\n');
   process.exit(1);
 } else {
   console.log('\n✅ Test 2 PASSED\n');
 }
 
-// Test 3: GPT-4 and GPT-3.5 models SHOULD support temperature
-console.log('Test 3: GPT-4 and GPT-3.5 models SHOULD support temperature');
-const legacyModels = ['gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo', 'gpt-4.1', 'gpt-4.5'];
-let allLegacyTestsPassed = true;
+// Test 3: GPT-4.1 and GPT-4.5 models SHOULD support temperature
+console.log('Test 3: GPT-4.1 and GPT-4.5 models SHOULD support temperature');
+const currentGpt4Models = ['gpt-4.1', 'gpt-4.1-mini', 'gpt-4.5', 'gpt-4.5-preview'];
+let currentGpt4TestsPassed = true;
 
-for (const model of legacyModels) {
+for (const model of currentGpt4Models) {
   const supports = supportsTemperature(model);
   if (!supports) {
     console.error(`  ✗ FAIL: ${model} SHOULD support temperature, but function returned false`);
-    allLegacyTestsPassed = false;
+    currentGpt4TestsPassed = false;
   } else {
     console.log(`  ✓ PASS: ${model} correctly supports temperature`);
   }
 }
 
-if (!allLegacyTestsPassed) {
+if (!currentGpt4TestsPassed) {
   console.error('\n❌ Test 3 FAILED\n');
   process.exit(1);
 } else {
@@ -112,8 +112,8 @@ let apiConstructionTestsPassed = true;
 apiConstructionTestsPassed &= testApiCall('gpt-5-nano', false);
 apiConstructionTestsPassed &= testApiCall('gpt-5-mini', false);
 apiConstructionTestsPassed &= testApiCall('o3-mini', false);
-apiConstructionTestsPassed &= testApiCall('gpt-4-turbo', true);
-apiConstructionTestsPassed &= testApiCall('gpt-3.5-turbo', true);
+apiConstructionTestsPassed &= testApiCall('gpt-4.1', true);
+apiConstructionTestsPassed &= testApiCall('gpt-4.5', true);
 
 if (!apiConstructionTestsPassed) {
   console.error('\n❌ Test 5 FAILED\n');
@@ -128,8 +128,9 @@ console.log('🎉 ALL TESTS PASSED');
 console.log('='.repeat(70));
 console.log('\nSummary:');
 console.log('✓ GPT-5 models correctly exclude temperature parameter');
-console.log('✓ O-series models correctly exclude temperature parameter');
-console.log('✓ Legacy GPT-4/3.5 models correctly include temperature parameter');
+console.log('✓ O3-mini model correctly excludes temperature parameter');
+console.log('✓ GPT-4.1/4.5 models correctly include temperature parameter');
 console.log('✓ Default behavior handles null/undefined correctly');
 console.log('✓ API call construction works as expected');
 console.log('\nThe temperature support logic is functioning correctly!');
+console.log('Note: Deprecated models (GPT-4, GPT-3.5, o1, o4) removed from codebase.');
