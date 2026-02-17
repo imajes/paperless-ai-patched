@@ -13,8 +13,28 @@ const parseEnvBoolean = (value, defaultValue = 'yes') => {
   return value.toLowerCase() === 'true' || value === '1' || value.toLowerCase() === 'yes' ? 'yes' : 'no';
 };
 
-// Get model-specific defaults
-const currentModel = process.env.OPENAI_MODEL || 'gpt-5-nano';
+// Get model-specific defaults based on AI provider
+const aiProvider = process.env.AI_PROVIDER || 'openai';
+let currentModel;
+
+// Get the current model based on the AI provider
+switch(aiProvider.toLowerCase()) {
+  case 'openai':
+    currentModel = process.env.OPENAI_MODEL || 'gpt-5-nano';
+    break;
+  case 'ollama':
+    currentModel = process.env.OLLAMA_MODEL || 'llama3.2';
+    break;
+  case 'custom':
+    currentModel = process.env.CUSTOM_MODEL || '';
+    break;
+  case 'azure':
+    currentModel = process.env.AZURE_DEPLOYMENT_NAME || '';
+    break;
+  default:
+    currentModel = '';
+}
+
 const modelLimits = getModelTokenLimits(currentModel);
 
 // Use model-specific token limits as defaults
