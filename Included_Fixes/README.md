@@ -33,6 +33,7 @@ Each subdirectory represents an integrated fix with:
 | [DOCKER-001](DOCKER-001-optimize-images/) | Docker image optimization | ✅ Applied | 2025-12-03 |
 | [DOCKER-002](DOCKER-002-upgrade-nodejs-24-lts/) | Upgrade Node.js to 24 LTS | ✅ Applied | 2025-12-18 |
 | [UI-001](UI-001-hide-rag-menu-lite/) | Hide RAG menu in Lite image | ✅ Applied | 2025-12-04 |
+| [UI-002](UI-002-system-prompt-extraction/) | Extract system prompt to markdown file | ✅ Applied | 2026-02-17 |
 | [CI-001](CI-001-auto-version-tagging/) | Automatic version tagging for builds | ✅ Applied | 2025-12-04 |
 | [SEC-001](SEC-001-ssrf-code-injection/) | SSRF & Code Injection Fixes | ✅ Applied | 2025-12-03 |
 | [SEC-002](SEC-002-urllib3-cve-2026-21441/) | Fix urllib3 decompression-bomb (CVE-2026-21441) | ✅ Applied | 2026-01-09 |

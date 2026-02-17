@@ -68,6 +68,7 @@ All fixes are documented in [`Included_Fixes/`](Included_Fixes/) with detailed i
 | **Docker** | [DOCKER-002](Included_Fixes/DOCKER-002-upgrade-nodejs-24-lts/) | Upgrade to Node.js 24 LTS | ✅ Applied |
 | **Dependencies** | [DEP-001](Included_Fixes/DEP-001-remove-sqlite3/) | Remove unused sqlite3 | ✅ Applied |
 | **Dependencies** | [DEP-002](Included_Fixes/DEP-002-openai-v6-upgrade/) | OpenAI SDK v6 & GPT-5 migration | ✅ Applied |
+| **UI/UX** | [UI-002](Included_Fixes/UI-002-system-prompt-extraction/) | Extract system prompt to markdown | ✅ Applied |
 | **CI/CD** | [CI-001](Included_Fixes/CI-001-auto-version-tagging/) | Automatic version tagging | ✅ Applied |
 
 Full details: [`Included_Fixes/README.md`](Included_Fixes/README.md)
