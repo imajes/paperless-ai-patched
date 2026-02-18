@@ -28,6 +28,7 @@ jobs:
     outputs:
       version_tag: ${{ steps.version.outputs.tag }}
       base_version: ${{ steps.version.outputs.base }}
+      is_prerelease: ${{ steps.version.outputs.prerelease }}
     
     steps:
       - name: Checkout code
@@ -42,6 +43,14 @@ jobs:
           BASE_VERSION=$(grep "PAPERLESS_AI_VERSION:" config/config.js | sed "s/.*'\(.*\)'.*/\1/")
           echo "Base version: $BASE_VERSION"
           
+          # Determine prerelease status (e.g., 4.0.0-alpha)
+          if [[ "$BASE_VERSION" == *-* ]]; then
+            PRERELEASE=true
+          else
+            PRERELEASE=false
+          fi
+          echo "Prerelease: $PRERELEASE"
+
           # Get all tags matching the base version pattern
           git fetch --tags
           LATEST_BUILD=$(git tag -l "v${BASE_VERSION}-*" | sed "s/v${BASE_VERSION}-//" | sort -n | tail -1)
@@ -58,6 +67,7 @@ jobs:
           
           echo "tag=$VERSION_TAG" >> $GITHUB_OUTPUT
           echo "base=$BASE_VERSION" >> $GITHUB_OUTPUT
+          echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
       
       - name: Create and push tag
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
@@ -145,10 +155,10 @@ jobs:
           tags: |
             type=raw,value=${{ needs.generate-version.outputs.version_tag }}
             type=raw,value=${{ needs.generate-version.outputs.version_tag }}-lite
-            type=raw,value=latest,enable=${{ inputs.also_tag_latest == true || github.event_name == 'push' }}
-            type=raw,value=latest-lite,enable=${{ inputs.also_tag_latest == true || github.event_name == 'push' }}
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ (inputs.also_tag_latest == true || github.event_name == 'push') && needs.generate-version.outputs.is_prerelease != 'true' }}
+            type=raw,value=latest-lite,enable=${{ (inputs.also_tag_latest == true || github.event_name == 'push') && needs.generate-version.outputs.is_prerelease != 'true' }}
+            type=semver,pattern={{version}},value=${{ needs.generate-version.outputs.base_version }},enable=${{ needs.generate-version.outputs.is_prerelease != 'true' }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ needs.generate-version.outputs.base_version }},enable=${{ needs.generate-version.outputs.is_prerelease != 'true' }}
             type=ref,event=pr
             type=sha,prefix={{branch}}-
       
@@ -247,9 +257,9 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ steps.repo.outputs.name }}
           tags: |
             type=raw,value=${{ needs.generate-version.outputs.version_tag }}-full
-            type=raw,value=latest-full,enable=${{ inputs.also_tag_latest == true || github.event_name == 'push' }}
-            type=semver,pattern={{version}}-full
-            type=semver,pattern={{major}}.{{minor}}-full
+            type=raw,value=latest-full,enable=${{ (inputs.also_tag_latest == true || github.event_name == 'push') && needs.generate-version.outputs.is_prerelease != 'true' }}
+            type=semver,pattern={{version}}-full,value=${{ needs.generate-version.outputs.base_version }},enable=${{ needs.generate-version.outputs.is_prerelease != 'true' }}
+            type=semver,pattern={{major}}.{{minor}}-full,value=${{ needs.generate-version.outputs.base_version }},enable=${{ needs.generate-version.outputs.is_prerelease != 'true' }}
             type=ref,event=pr,suffix=-full
             type=sha,prefix={{branch}}-,suffix=-full
       
@@ -281,6 +291,11 @@ jobs:
     if: always()
     
     steps:
+      - name: Set lowercase repository name
+        id: repo
+        run: |
+          echo "name=${GITHUB_REPOSITORY@L}" >> $GITHUB_OUTPUT
+
       - name: Generate summary
         run: |
           echo "### 🚀 GHCR Build Summary" >> $GITHUB_STEP_SUMMARY
@@ -289,6 +304,7 @@ jobs:
           echo "**Base Version:** \`${{ needs.generate-version.outputs.base_version }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Registry:** GitHub Container Registry (GHCR)" >> $GITHUB_STEP_SUMMARY
           echo "**Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Also tagged as latest:** ${{ (inputs.also_tag_latest == true || github.event_name == 'push') && needs.generate-version.outputs.is_prerelease != 'true' }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           echo "#### ✅ Lite Image (Default)" >> $GITHUB_STEP_SUMMARY
@@ -297,7 +313,7 @@ jobs:
           echo "- **Features:** Full AI tagging, no RAG" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-          echo "docker pull ghcr.io/${{ github.repository }}:${{ needs.generate-version.outputs.version_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ghcr.io/${{ steps.repo.outputs.name }}:${{ needs.generate-version.outputs.version_tag }}" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
@@ -308,7 +324,7 @@ jobs:
             echo "- **Features:** AI tagging + RAG semantic search" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-            echo "docker pull ghcr.io/${{ github.repository }}:${{ needs.generate-version.outputs.version_tag }}-full" >> $GITHUB_STEP_SUMMARY
+            echo "docker pull ghcr.io/${{ steps.repo.outputs.name }}:${{ needs.generate-version.outputs.version_tag }}-full" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           else
             echo "#### ℹ️ Full Image" >> $GITHUB_STEP_SUMMARY

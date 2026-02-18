@@ -1,6 +1,6 @@
 {
   "name": "paperless-ai-patched",
-  "version": "1.0.0",
+  "version": "4.0.0-alpha",
   "description": "AI based Tag, correspondent and meta data generation",
   "main": "server.js",
   "scripts": {

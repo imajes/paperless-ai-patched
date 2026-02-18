@@ -4,7 +4,7 @@ const swaggerDefinition = {
   openapi: '3.0.0',
   info: {
     title: 'Paperless-AI API Documentation',
-    version: '1.0.0',
+    version: '4.0.0-alpha',
     description: 'API documentation for the Paperless-AI application',
     license: {
       name: 'MIT',

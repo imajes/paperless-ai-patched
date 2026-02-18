@@ -10,7 +10,7 @@
 ## 🐛 Problem
 
 The previous Docker build workflows required **manual version tag input** for every build:
-- Manual input: `tag: 'Docker image tag (e.g., v3.0.9-1)'`
+- Manual input: `tag: 'Docker image tag (e.g., v4.0.0-alpha-1)'`
 - Error-prone: Easy to forget incrementing the version
 - Inconsistent: No automatic tracking of build numbers
 - Time-consuming: Required manual coordination
@@ -28,7 +28,7 @@ Implemented **automatic version tagging** that:
 2. Scans git tags for existing build numbers
 3. Automatically increments the build number
 4. Creates and pushes git tags automatically
-5. Uses format: `v{base_version}-{build_number}` (e.g., `v3.0.9-12`)
+5. Uses format: `v{base_version}-{build_number}` (e.g., `v4.0.0-alpha-12`)
 
 ### How It Works
 
@@ -110,13 +110,17 @@ generate-version:
 
 ### Version Format
 
-**Pattern**: `v{major}.{minor}.{patch}-{build_number}`
+**Pattern**: `v{base_version}-{build_number}`
+
+**Notes**:
+- Pre-release versions are supported (e.g., `v4.0.0-alpha-1`)
+- `latest` tags are only applied for stable base versions (no pre-release suffix)
 
 **Examples**:
-- `v3.0.9-1` - First build of version 3.0.9
-- `v3.0.9-2` - Second build of version 3.0.9
-- `v3.0.9-15` - Fifteenth build of version 3.0.9
-- `v3.1.0-1` - First build of version 3.1.0 (when config.js is updated)
+- `v4.0.0-alpha-1` - First build of version 4.0.0-alpha
+- `v4.0.0-alpha-2` - Second build of version 4.0.0-alpha
+- `v4.0.0-alpha-15` - Fifteenth build of version 4.0.0-alpha
+- `v4.0.0-1` - First build of version 4.0.0 (when config.js is updated)
 
 ## 🧪 Testing
 
@@ -124,23 +128,23 @@ generate-version:
 
 **Scenario 1: First build after version change**
 ```bash
-# config.js has PAPERLESS_AI_VERSION: '3.0.9'
-# No existing v3.0.9-* tags
-# Result: v3.0.9-1
+# config.js has PAPERLESS_AI_VERSION: '4.0.0-alpha'
+# No existing v4.0.0-alpha-* tags
+# Result: v4.0.0-alpha-1
 ```
 
 **Scenario 2: Subsequent builds**
 ```bash
-# config.js has PAPERLESS_AI_VERSION: '3.0.9'
-# Existing tags: v3.0.9-1, v3.0.9-2
-# Result: v3.0.9-3
+# config.js has PAPERLESS_AI_VERSION: '4.0.0-alpha'
+# Existing tags: v4.0.0-alpha-1, v4.0.0-alpha-2
+# Result: v4.0.0-alpha-3
 ```
 
 **Scenario 3: Version bump in config.js**
 ```bash
-# config.js updated to PAPERLESS_AI_VERSION: '3.1.0'
-# No existing v3.1.0-* tags
-# Result: v3.1.0-1
+# config.js updated to PAPERLESS_AI_VERSION: '4.0.0'
+# No existing v4.0.0-* tags
+# Result: v4.0.0-1
 ```
 
 ### Workflow Triggers
@@ -187,9 +191,9 @@ on:
 **Version Changes**:
 ```bash
 # When base version changes in config.js
-v3.0.9-15  # Last build of 3.0.9
-v3.1.0-1   # First build of 3.1.0 (automatic reset)
-v3.1.0-2   # Second build continues
+v4.0.0-alpha-15  # Last build of 4.0.0-alpha
+v4.0.0-1         # First build of 4.0.0 (automatic reset)
+v4.0.0-2         # Second build continues
 ```
 
 ## 🎯 Workflow Improvements
@@ -200,7 +204,7 @@ v3.1.0-2   # Second build continues
 ```yaml
 inputs:
   tag:
-    description: 'Docker image tag (e.g., v3.0.9-1)'
+    description: 'Docker image tag (e.g., v4.0.0-alpha-1)'
     required: true
     default: 'latest'
 ```
@@ -267,7 +271,7 @@ git push origin main
 # Workflow automatically:
 # 1. Reads version from config.js
 # 2. Finds next build number
-# 3. Creates tag (e.g., v3.0.9-12)
+# 3. Creates tag (e.g., v4.0.0-alpha-12)
 # 4. Builds and pushes Docker images
 ```
 
@@ -286,10 +290,10 @@ Via GitHub Actions UI:
 To release a new version:
 1. Update `config/config.js`:
    ```javascript
-   PAPERLESS_AI_VERSION: '3.1.0',
+   PAPERLESS_AI_VERSION: '4.0.0',
    ```
 2. Commit and push
-3. Next build will be `v3.1.0-1`
+3. Next build will be `v4.0.0-1`
 
 ## 📸 Example Output
 
@@ -297,8 +301,8 @@ To release a new version:
 ```
 🚀 Docker Build Summary
 
-Version Tag: `v3.0.9-12`
-Base Version: `3.0.9`
+Version Tag: `v4.0.0-alpha-12`
+Base Version: `4.0.0-alpha`
 Also tagged as latest: true
 
 ✅ Lite Image (Default)
@@ -306,17 +310,17 @@ Also tagged as latest: true
 - Platforms: linux/amd64, linux/arm64
 - Features: Full AI tagging, no RAG
 
-docker pull admonstrator/paperless-ai-patched:v3.0.9-12
+docker pull admonstrator/paperless-ai-patched:v4.0.0-alpha-12
 ```
 
 **Git Tags**:
 ```bash
-$ git tag -l "v3.0.9-*"
-v3.0.9-1
-v3.0.9-2
-v3.0.9-3
+$ git tag -l "v4.0.0-alpha-*"
+v4.0.0-alpha-1
+v4.0.0-alpha-2
+v4.0.0-alpha-3
 ...
-v3.0.9-12
+v4.0.0-alpha-12
 ```
 
 ## 👥 Credits

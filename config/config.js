@@ -102,7 +102,7 @@ try {
 }
 
 module.exports = {
-  PAPERLESS_AI_VERSION: '3.0.9',
+  PAPERLESS_AI_VERSION: '4.0.0-alpha',
   CONFIGURED: false,
   disableAutomaticProcessing: process.env.DISABLE_AUTOMATIC_PROCESSING || 'no',
   predefinedMode: process.env.PROCESS_PREDEFINED_DOCUMENTS,
