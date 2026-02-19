@@ -73,13 +73,14 @@
 ```
 paperless-ai-enhanced/
 ├── server.js                 # Main Express server entry point
-├── main.py                   # Python FastAPI RAG service
-├── start-services.sh         # Docker startup script (PM2 + uvicorn)
+├── rag_service/main.py                   # Python FastAPI RAG service
+├── rag_service/start-services.sh         # Docker startup script (PM2 + uvicorn)
 ├── ecosystem.config.js       # PM2 configuration
 ├── package.json              # Node.js dependencies
-├── requirements.txt          # Python dependencies
+├── rag_service/pyproject.toml            # uv project metadata and dependencies
+├── rag_service/uv.lock                   # uv lockfile
 ├── Dockerfile                # Full Docker image (Node + Python)
-├── Dockerfile.rag            # Lite Docker image (Node only)
+├── rag_service/Dockerfile.rag            # Python-only RAG image
 ├── docker-compose.yml        # Docker Compose configuration
 │
 ├── config/
@@ -191,7 +192,7 @@ Node.js (/api/rag/*) → FastAPI (Python) → ChromaDB + BM25 → LLM → Respon
 ```
 
 **Implementation**:
-- `main.py`: FastAPI service on port 8000
+- `rag_service/main.py`: FastAPI service on port 8000
 - Hybrid search: BM25 (keyword) + semantic embeddings
 - CrossEncoder reranking for relevance
 - Document chunking with overlap
@@ -368,9 +369,7 @@ cd paperless-ai-patched
 npm install
 
 # 3. Install Python dependencies (for RAG)
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
+uv sync --project rag_service
 
 # 4. Download NLTK data (required for RAG)
 python3 -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
@@ -390,8 +389,7 @@ cp .env.example data/.env
 npm run test  # Uses nodemon for auto-reload
 
 # Terminal 2 - Python RAG service
-source venv/bin/activate
-python main.py
+uv run --project rag_service python rag_service/main.py
 
 # Option B: Production (PM2)
 npm install -g pm2

@@ -6,7 +6,7 @@ This guide explains how to run the Paperless-AI application with the RAG service
 
 The integration consists of two main components:
 
-1. **Python RAG Service (main.py)**: Handles document indexing, search, and context retrieval
+1. **Python RAG Service (rag_service/main.py)**: Handles document indexing, search, and context retrieval
 2. **Node.js Integration**: Manages the UI, communicates with the Python service, and uses LLMs to generate responses
 
 In production, both services run in the same Docker container, but for development, you can run them separately.
@@ -26,7 +26,7 @@ In production, both services run in the same Docker container, but for developme
 npm install
 
 # Install Python dependencies
-pip install -r requirements.txt
+uv sync --project rag_service
 ```
 
 2. Configure your `.env` file in the `data` directory with your Paperless-NGX credentials:
@@ -42,10 +42,10 @@ PAPERLESS_API_TOKEN=your-api-token
 
 ```bash
 # Make the script executable first (Linux/macOS)
-chmod +x start-services.sh
+chmod +x rag_service/start-services.sh
 
 # Run the services
-./start-services.sh
+./rag_service/start-services.sh
 ```
 
 ## Option 2: Run Services Separately
@@ -55,13 +55,13 @@ chmod +x start-services.sh
 1. Install Python dependencies:
 
 ```bash
-pip install -r requirements.txt
+uv sync --project rag_service
 ```
 
 2. Start the Python RAG service:
 
 ```bash
-python main.py --host 127.0.0.1 --port 8000 --initialize
+uv run --project rag_service python rag_service/main.py --host 127.0.0.1 --port 8000 --initialize
 ```
 
 The `--initialize` flag will build the document index on startup.
@@ -125,7 +125,7 @@ You should see the RAG interface where you can ask questions about your document
 When making changes to the codebase:
 
 1. **Python RAG Service Changes**: 
-   - Edit `main.py`
+   - Edit `rag_service/main.py`
    - Restart the Python service to apply changes
 
 2. **Paperless-AI Integration Changes**:

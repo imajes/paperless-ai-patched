@@ -11,19 +11,17 @@ RUN apt-get update && \
     make && \
     rm -rf /var/lib/apt/lists/*
 
-# Create virtual environment and install Python dependencies
-COPY requirements.txt .
-RUN python3 -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-# Use pip cache and parallel downloads for faster installation
+# Install uv and resolve Python dependencies from rag_service/pyproject.toml
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --upgrade pip && \
-    pip install -r requirements.txt && \
-    find /opt/venv -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true && \
-    find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
-    find /opt/venv -name "*.pyc" -delete && \
-    find /opt/venv -name "*.pyo" -delete && \
-    find /opt/venv -name "*.dist-info" -type d -exec rm -rf {} + 2>/dev/null || true
+    pip install --upgrade pip uv
+COPY rag_service/pyproject.toml rag_service/uv.lock ./rag_service/
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --project ./rag_service --frozen --no-dev --no-install-project && \
+    find ./rag_service/.venv -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true && \
+    find ./rag_service/.venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
+    find ./rag_service/.venv -name "*.pyc" -delete && \
+    find ./rag_service/.venv -name "*.pyo" -delete && \
+    find ./rag_service/.venv -name "*.dist-info" -type d -exec rm -rf {} + 2>/dev/null || true
 
 # Stage 2: Build stage for Node.js dependencies
 FROM node:24-slim AS node-builder
@@ -61,14 +59,16 @@ RUN apt-get update && \
 RUN npm install pm2 -g && npm cache clean --force
 
 # Copy Python virtual environment from builder
-COPY --from=python-builder /opt/venv /app/venv
+COPY --from=python-builder /build/rag_service/.venv /app/venv
 ENV PATH="/app/venv/bin:$PATH"
 
 # Copy Node.js dependencies from builder
 COPY --from=node-builder /build/node_modules ./node_modules
 
 # Copy application files
-COPY --chown=node:node server.js main.py start-services.sh ./
+COPY --chown=node:node server.js ./
+COPY --chown=node:node rag_service/main.py ./main.py
+COPY --chown=node:node rag_service/start-services.sh ./start-services.sh
 COPY --chown=node:node config ./config/
 COPY --chown=node:node models ./models/
 COPY --chown=node:node routes ./routes/

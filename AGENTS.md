@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 `server.js` is the main Express entry point. API routes are in `routes/`, business logic and provider integrations are in `services/`, and SQLite access lives in `models/document.js`. UI templates are in `views/` with static assets in `public/css` and `public/js`.  
-The optional RAG backend runs from `main.py` (FastAPI). Runtime configuration is centralized in `config/config.js` and environment values come from `data/.env` (see `.env.example`).  
+The optional RAG backend runs from `rag_service/main.py` (FastAPI). Runtime configuration is centralized in `config/config.js` and environment values come from `data/.env` (see `.env.example`).  
 Use `tests/` for executable regression scripts and `Included_Fixes/` for documenting integrated fixes in this fork.
 
 ## Build, Test, and Development Commands
@@ -10,7 +10,8 @@ Use `tests/` for executable regression scripts and `Included_Fixes/` for documen
 - `npm run test`: start local dev server with `nodemon` (this is the current dev script).
 - `node tests/test-model-token-limits.js`: run a single regression test script.
 - `for f in tests/test-*.js; do node "$f"; done`: run all Node test scripts sequentially.
-- `python main.py --host 127.0.0.1 --port 8000 --initialize`: run the Python RAG service locally.
+- `uv sync --project rag_service`: install/sync Python dependencies for the RAG service.
+- `uv run --project rag_service python rag_service/main.py --host 127.0.0.1 --port 8000 --initialize`: run the Python RAG service locally.
 - `docker compose up -d`: run the containerized app from `docker-compose.yml`.
 
 ## Coding Style & Naming Conventions

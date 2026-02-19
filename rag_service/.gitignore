@@ -1,0 +1,35 @@
+# Virtual environments
+.venv/
+venv/
+surya_env/
+
+# Python bytecode/cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# RAG runtime artifacts
+/chromadb/
+data/
+documents.json
+rag_config.conf
+indexed.conf
+indexing_complete.flag
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyright/
+.basedpyright/
+
+# Coverage outputs
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Local env/config files
+.env
+.env.*
+.python-version

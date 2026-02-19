@@ -1,0 +1,36 @@
+default:
+    @just --list
+
+sync:
+    uv sync
+
+sync-prod:
+    uv sync --no-dev
+
+lock:
+    uv lock
+
+run host="127.0.0.1" port="8000":
+    uv run python main.py --host {{host}} --port {{port}} --initialize
+
+format:
+    uv run black .
+    uv run darker .
+
+format-check:
+    uv run black --check .
+    uv run darker --check .
+
+lint:
+    uv run ruff check .
+
+lint-fix:
+    uv run ruff check --fix .
+
+typecheck:
+    uv run basedpyright
+
+check:
+    just lint
+    just format-check
+    just typecheck

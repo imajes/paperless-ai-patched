@@ -1,0 +1,47 @@
+[project]
+name = "paperless-ai-rag-service"
+version = "0.1.0"
+description = "Python RAG service for paperless-ai-patched"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi>=0.95.0",
+  "uvicorn>=0.21.1",
+  "python-dotenv>=1.0.0",
+  "requests>=2.28.2",
+  "urllib3>=2.6.3",
+  "numpy>=1.24.2",
+  "torch>=2.0.0",
+  "sentence-transformers>=2.2.2",
+  "chromadb>=0.3.21",
+  "rank-bm25>=0.2.2",
+  "nltk>=3.8.1",
+  "tqdm>=4.65.0",
+  "pydantic>=2.12.5",
+]
+
+[dependency-groups]
+dev = [
+  "ruff>=0.11.0",
+  "black>=25.1.0",
+  "darker>=2.0.0",
+  "basedpyright>=1.31.0",
+]
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.basedpyright]
+pythonVersion = "3.10"

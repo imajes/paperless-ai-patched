@@ -4,14 +4,8 @@
 # Runtime data
 data/
 data_*/
-/chromadb/
 public/images/
 documents.json
-
-# Runtime state
-rag_config.conf
-indexed.conf
-indexing_complete.flag
 
 # Logs
 logs/
@@ -20,11 +14,6 @@ npm-debug.log*
 
 # Node.js
 node_modules/
-
-# Python
-__pycache__/
-*.pyc
-surya_env/
 
 # Local dev overrides
 docker-compose-dev.yml

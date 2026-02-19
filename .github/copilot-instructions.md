@@ -7,8 +7,8 @@ Community fork of [clusterzx/paperless-ai](https://github.com/clusterzx/paperles
 
 ### Dual Runtime System
 - **Node.js (Express)**: Main API server, document processing, UI (`server.js`)
-- **Python (FastAPI)**: Optional RAG service for semantic search (`main.py`)
-- **Startup**: `start-services.sh` launches both with PM2 + uvicorn
+- **Python (FastAPI)**: Optional RAG service for semantic search (`rag_service/main.py`)
+- **Startup**: `rag_service/start-services.sh` launches both with PM2 + uvicorn
 - **Database**: better-sqlite3 with WAL mode (`models/document.js`)
 
 ### Service Layer Pattern
@@ -82,8 +82,8 @@ Tag caching with 5-minute TTL reduces Paperless-ngx API calls by ~95%.
 npm run test  # Uses nodemon
 
 # Python RAG service
-source venv/bin/activate
-python main.py --host 127.0.0.1 --port 8000
+uv sync --project rag_service
+uv run --project rag_service python rag_service/main.py --host 127.0.0.1 --port 8000
 
 # Production (Docker uses this)
 pm2 start ecosystem.config.js
