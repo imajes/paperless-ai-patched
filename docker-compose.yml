@@ -1,28 +1,55 @@
 services:
   paperless-ai:
-    # Docker Hub (default)
-    image: admonstrator/paperless-ai-patched:latest
-    
-    # For RAG support, use the full image (~1.5-2 GB):
-    # image: admonstrator/paperless-ai-patched:latest-full
-    
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: paperless-ai-patched:local
     container_name: paperless-ai
-    network_mode: bridge
     restart: unless-stopped
+    depends_on:
+      rag-service:
+        condition: service_healthy
     cap_drop:
       - ALL
     security_opt:
       - no-new-privileges=true
     environment:
-      - PUID=1000
-      - PGID=1000
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
       - PAPERLESS_AI_PORT=${PAPERLESS_AI_PORT:-3000}
-      - RAG_SERVICE_URL=http://localhost:8000
+      - RAG_SERVICE_URL=http://rag-service:${RAG_SERVICE_PORT:-8000}
       - RAG_SERVICE_ENABLED=true
     ports:
-      - "3000:${PAPERLESS_AI_PORT:-3000}"
+      - "${PAPERLESS_AI_PORT:-3000}:${PAPERLESS_AI_PORT:-3000}"
     volumes:
-      - paperless-ai_data:/app/data
+      - paperless_ai_data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:${PAPERLESS_AI_PORT:-3000}/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  rag-service:
+    build:
+      context: .
+      dockerfile: rag_service/Dockerfile
+    image: paperless-ai-rag:local
+    container_name: paperless-ai-rag
+    restart: unless-stopped
+    environment:
+      - RAG_SERVICE_PORT=${RAG_SERVICE_PORT:-8000}
+      - PAPERLESS_API_URL=${PAPERLESS_API_URL:-http://paperless-ngx:8000/api}
+      - PAPERLESS_API_TOKEN=${PAPERLESS_API_TOKEN:-}
+    expose:
+      - "${RAG_SERVICE_PORT:-8000}"
+    volumes:
+      - rag_data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:${RAG_SERVICE_PORT:-8000}/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
-  paperless-ai_data:
+  paperless_ai_data:
+  rag_data:

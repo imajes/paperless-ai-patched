@@ -38,14 +38,14 @@ PAPERLESS_API_TOKEN=your-api-token
 
 **Note:** The Python service will also read the existing API settings from this file (PAPERLESS_API_URL).
 
-3. Run both services using the provided script:
+3. Run both services in separate terminals:
 
 ```bash
-# Make the script executable first (Linux/macOS)
-chmod +x rag_service/start-services.sh
+# Terminal 1: Node.js app
+npm run test
 
-# Run the services
-./rag_service/start-services.sh
+# Terminal 2: Python RAG service
+uv run --project rag_service python rag_service/main.py --host 127.0.0.1 --port ${RAG_SERVICE_PORT:-8000} --initialize
 ```
 
 ## Option 2: Run Services Separately
@@ -72,19 +72,22 @@ The `--initialize` flag will build the document index on startup.
 
 For Windows (Command Prompt):
 ```cmd
-set RAG_SERVICE_URL=http://localhost:8000
+set RAG_SERVICE_PORT=8000
+set RAG_SERVICE_URL=http://localhost:%RAG_SERVICE_PORT%
 set RAG_SERVICE_ENABLED=true
 ```
 
 For Windows (PowerShell):
 ```powershell
-$env:RAG_SERVICE_URL="http://localhost:8000"
+$env:RAG_SERVICE_PORT="8000"
+$env:RAG_SERVICE_URL="http://localhost:$env:RAG_SERVICE_PORT"
 $env:RAG_SERVICE_ENABLED="true"
 ```
 
 For Linux/macOS:
 ```bash
-export RAG_SERVICE_URL=http://localhost:8000
+export RAG_SERVICE_PORT=8000
+export RAG_SERVICE_URL=http://localhost:${RAG_SERVICE_PORT}
 export RAG_SERVICE_ENABLED=true
 ```
 
@@ -116,9 +119,9 @@ You should see the RAG interface where you can ask questions about your document
 
 ### Common Issues
 
-- **Missing Documents**: Check that the indexing has completed. You can check the status at `http://localhost:8000/indexing/status`.
+- **Missing Documents**: Check that the indexing has completed. You can check the status at `http://localhost:${RAG_SERVICE_PORT:-8000}/indexing/status`.
 - **Connection Errors**: Ensure your Paperless-NGX credentials are correct and the instance is accessible.
-- **Port Conflicts**: If port 8000 is already in use, specify a different port with the `--port` parameter and update the `RAG_SERVICE_URL` environment variable accordingly.
+- **Port Conflicts**: Set `RAG_SERVICE_PORT` to another value, start the RAG server with `--port $RAG_SERVICE_PORT`, and update `RAG_SERVICE_URL` to match.
 
 ## Development Workflow
 

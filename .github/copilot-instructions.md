@@ -8,7 +8,7 @@ Community fork of [clusterzx/paperless-ai](https://github.com/clusterzx/paperles
 ### Dual Runtime System
 - **Node.js (Express)**: Main API server, document processing, UI (`server.js`)
 - **Python (FastAPI)**: Optional RAG service for semantic search (`rag_service/main.py`)
-- **Startup**: `rag_service/start-services.sh` launches both with PM2 + uvicorn
+- **Deployment**: Docker Compose runs Node and RAG as separate containers
 - **Database**: better-sqlite3 with WAL mode (`models/document.js`)
 
 ### Service Layer Pattern
@@ -53,7 +53,7 @@ All config loads from `data/.env` via `config/config.js`. Key patterns:
 **Key Files**: `server.js` lines 150-400, `services/paperlessService.js`
 
 ### RAG Service Integration
-- Python service runs on port 8000 (configurable via `RAG_SERVICE_URL`)
+- Python service runs on `RAG_SERVICE_PORT` (default `8000`)
 - Node.js proxies requests through `services/ragService.js`
 - Embeddings: sentence-transformers with ChromaDB vector store
 - Hybrid search: BM25 (keyword) + semantic embeddings, weighted 30/70

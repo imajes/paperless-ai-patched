@@ -3,8 +3,9 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
@@ -23,8 +24,13 @@ COPY rag_service/main.py /app/rag_service/main.py
 # Create necessary directories
 RUN mkdir -p /app/data /app/data/chromadb
 
-# Expose port for FastAPI
+ENV RAG_SERVICE_PORT=8000
+
+# Expose default FastAPI port (runtime configurable via RAG_SERVICE_PORT)
 EXPOSE 8000
 
-# Run the application with auto-initialization
-CMD ["uv", "run", "--project", "/app/rag_service", "python", "/app/rag_service/main.py", "--host", "0.0.0.0", "--port", "8000", "--initialize"]
+HEALTHCHECK --interval=30s --timeout=30s --start-period=10s --retries=3 \
+  CMD curl -fsS "http://localhost:${RAG_SERVICE_PORT:-8000}/status" || exit 1
+
+# Run the application with auto-initialization and env-configurable port
+CMD ["sh", "-c", "uv run --project /app/rag_service python /app/rag_service/main.py --host 0.0.0.0 --port ${RAG_SERVICE_PORT:-8000} --initialize"]

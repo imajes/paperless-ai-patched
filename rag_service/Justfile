@@ -1,6 +1,8 @@
 default:
     @just --list
 
+rag_port := env_var_or_default("RAG_SERVICE_PORT", "8000")
+
 sync:
     uv sync
 
@@ -10,7 +12,7 @@ sync-prod:
 lock:
     uv lock
 
-run host="127.0.0.1" port="8000":
+run host="127.0.0.1" port=rag_port:
     uv run python main.py --host {{host}} --port {{port}} --initialize
 
 format:

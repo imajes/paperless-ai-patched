@@ -74,13 +74,12 @@
 paperless-ai-enhanced/
 ├── server.js                 # Main Express server entry point
 ├── rag_service/main.py                   # Python FastAPI RAG service
-├── rag_service/start-services.sh         # Docker startup script (PM2 + uvicorn)
 ├── ecosystem.config.js       # PM2 configuration
 ├── package.json              # Node.js dependencies
 ├── rag_service/pyproject.toml            # uv project metadata and dependencies
 ├── rag_service/uv.lock                   # uv lockfile
-├── Dockerfile                # Full Docker image (Node + Python)
-├── rag_service/Dockerfile.rag            # Python-only RAG image
+├── Dockerfile                # Main Node.js app Docker image
+├── rag_service/Dockerfile            # Python-only RAG image
 ├── docker-compose.yml        # Docker Compose configuration
 │
 ├── config/
@@ -192,7 +191,7 @@ Node.js (/api/rag/*) → FastAPI (Python) → ChromaDB + BM25 → LLM → Respon
 ```
 
 **Implementation**:
-- `rag_service/main.py`: FastAPI service on port 8000
+- `rag_service/main.py`: FastAPI service on `RAG_SERVICE_PORT` (default `8000`)
 - Hybrid search: BM25 (keyword) + semantic embeddings
 - CrossEncoder reranking for relevance
 - Document chunking with overlap
@@ -324,7 +323,8 @@ DISABLE_AUTOMATIC_PROCESSING=no
 
 **RAG Configuration**:
 ```bash
-RAG_SERVICE_URL=http://localhost:8000
+RAG_SERVICE_PORT=8000
+RAG_SERVICE_URL=http://localhost:${RAG_SERVICE_PORT}
 RAG_SERVICE_ENABLED=true
 ```
 

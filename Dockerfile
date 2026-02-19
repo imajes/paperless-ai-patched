@@ -1,34 +1,8 @@
-# Stage 1: Build stage for Python dependencies
-FROM python:3.11-slim AS python-builder
-
-WORKDIR /build
-
-# Install build dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    gcc \
-    g++ \
-    make && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install uv and resolve Python dependencies from rag_service/pyproject.toml
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --upgrade pip uv
-COPY rag_service/pyproject.toml rag_service/uv.lock ./rag_service/
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --project ./rag_service --frozen --no-dev --no-install-project && \
-    find ./rag_service/.venv -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true && \
-    find ./rag_service/.venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
-    find ./rag_service/.venv -name "*.pyc" -delete && \
-    find ./rag_service/.venv -name "*.pyo" -delete && \
-    find ./rag_service/.venv -name "*.dist-info" -type d -exec rm -rf {} + 2>/dev/null || true
-
-# Stage 2: Build stage for Node.js dependencies
 FROM node:24-slim AS node-builder
 
-WORKDIR /build
+WORKDIR /app
 
-# Install build dependencies for native modules (better-sqlite3)
+# Build deps are only needed for native module compilation (e.g. better-sqlite3).
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     python3 \
@@ -36,65 +10,48 @@ RUN apt-get update && \
     g++ && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy package files and install dependencies
 COPY package*.json ./
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci --only=production
+    npm ci --omit=dev
 
-# Stage 3: Final runtime stage
 FROM node:24-slim
 
 WORKDIR /app
 
-# Install only runtime dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    python3 \
     curl \
-    ca-certificates && \
+    ca-certificates \
+    gosu \
+    passwd && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Install PM2 globally
-RUN npm install pm2 -g && npm cache clean --force
+RUN npm install -g pm2 && npm cache clean --force
 
-# Copy Python virtual environment from builder
-COPY --from=python-builder /build/rag_service/.venv /app/venv
-ENV PATH="/app/venv/bin:$PATH"
+COPY --from=node-builder /app/node_modules ./node_modules
 
-# Copy Node.js dependencies from builder
-COPY --from=node-builder /build/node_modules ./node_modules
-
-# Copy application files
-COPY --chown=node:node server.js ./
-COPY --chown=node:node rag_service/main.py ./main.py
-COPY --chown=node:node rag_service/start-services.sh ./start-services.sh
+COPY --chown=node:node package.json server.js ecosystem.config.js schemas.js swagger.js ./
 COPY --chown=node:node config ./config/
 COPY --chown=node:node models ./models/
 COPY --chown=node:node routes ./routes/
 COPY --chown=node:node services ./services/
 COPY --chown=node:node views ./views/
 COPY --chown=node:node public ./public/
-COPY --chown=node:node schemas.js swagger.js ecosystem.config.js package.json ./
 
-# Make startup script executable
-RUN chmod +x start-services.sh
+COPY docker/entrypoint-node.sh /usr/local/bin/entrypoint-node.sh
+RUN chmod +x /usr/local/bin/entrypoint-node.sh
 
-# Configure persistent data volume
 VOLUME ["/app/data"]
 
-# Switch to non-root user
-USER node
+ENV NODE_ENV=production \
+    PAPERLESS_AI_PORT=3000 \
+    RAG_SERVICE_ENABLED=true
 
-# Configure application port
-EXPOSE ${PAPERLESS_AI_PORT:-3000}
+EXPOSE ${PAPERLESS_AI_PORT}
 
-# Add health check with dynamic port
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${PAPERLESS_AI_PORT:-3000}/health || exit 1
+    CMD curl -fsS "http://localhost:${PAPERLESS_AI_PORT:-3000}/health" || exit 1
 
-# Set production environment
-ENV NODE_ENV=production
-
-# Start both Node.js and Python services using our script
-CMD ["./start-services.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint-node.sh"]
+CMD ["pm2-runtime", "ecosystem.config.js"]

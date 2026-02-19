@@ -1,51 +1,56 @@
-# Lite version without RAG - significantly smaller image
+FROM node:24-slim AS node-builder
+
+WORKDIR /app
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY package*.json ./
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --omit=dev
+
 FROM node:24-slim
 
 WORKDIR /app
 
-# Install system dependencies including build tools for better-sqlite3
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     curl \
-    python3 \
-    make \
-    g++ && \
+    ca-certificates \
+    gosu \
+    passwd && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Install PM2 process manager globally
-RUN npm install pm2 -g
+RUN npm install -g pm2 && npm cache clean --force
 
-# Copy package files for dependency installation
-COPY package*.json ./
+COPY --from=node-builder /app/node_modules ./node_modules
 
-# Install node dependencies with clean install using cache mount
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --only=production
+COPY --chown=node:node package.json server.js ecosystem.config.js schemas.js swagger.js ./
+COPY --chown=node:node config ./config/
+COPY --chown=node:node models ./models/
+COPY --chown=node:node routes ./routes/
+COPY --chown=node:node services ./services/
+COPY --chown=node:node views ./views/
+COPY --chown=node:node public ./public/
 
-# Copy only necessary application files
-COPY server.js ecosystem.config.js ./
-COPY config ./config/
-COPY models ./models/
-COPY routes ./routes/
-COPY services ./services/
-COPY views ./views/
-COPY public ./public/
-COPY schemas.js swagger.js ./
+COPY docker/entrypoint-node.sh /usr/local/bin/entrypoint-node.sh
+RUN chmod +x /usr/local/bin/entrypoint-node.sh
 
-# Configure persistent data volume
 VOLUME ["/app/data"]
 
-# Configure application port
-EXPOSE ${PAPERLESS_AI_PORT:-3000}
-
-# Add health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${PAPERLESS_AI_PORT:-3000}/health || exit 1
-
-# Set production environment and disable RAG
 ENV NODE_ENV=production \
+    PAPERLESS_AI_PORT=3000 \
     RAG_SERVICE_ENABLED=false
 
-# Start only Node.js service using PM2
+EXPOSE ${PAPERLESS_AI_PORT}
+
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -fsS "http://localhost:${PAPERLESS_AI_PORT:-3000}/health" || exit 1
+
+ENTRYPOINT ["/usr/local/bin/entrypoint-node.sh"]
 CMD ["pm2-runtime", "ecosystem.config.js"]

@@ -23,7 +23,7 @@ Most dependencies were updated via `npm audit fix`. One remaining issue:
 
 ### Docker Security
 
-- [ ] PUID/PGID environment variables are declared in `docker-compose.yml` but the Dockerfile just switches to the `node` user — these values are never actually applied at runtime. Either add an entrypoint script that calls `usermod`/`groupmod`, or document that PUID/PGID have no effect.
+- [x] PUID/PGID environment variables are now applied at runtime via Docker entrypoint (`docker/entrypoint-node.sh`) with `usermod`/`groupmod` before dropping privileges.
 
 ---
 
@@ -53,7 +53,8 @@ These are ongoing — no single fix resolves them permanently:
 ### Docker
 
 - [ ] Create or audit `.dockerignore` to ensure build context is clean
-- [ ] Review COPY layer ordering in Dockerfile for optimal cache reuse
+- [x] Review COPY layer ordering in Dockerfile for optimal cache reuse
+- [x] Run RAG service in dedicated container with env-configurable port (`RAG_SERVICE_PORT`), and configure Node app to connect via `RAG_SERVICE_URL`.
 
 ### Database
 
@@ -139,7 +140,7 @@ These are ongoing — no single fix resolves them permanently:
 - [x] Swagger / OpenAPI documentation implemented
 - [x] COPILOT.md developer documentation created
 - [x] GitHub workflow migrated from Docker Hub to GHCR (uses `GITHUB_TOKEN` — no external secret needed)
-- [x] pydantic pinned to `>= 2.12.5` in `requirements.txt`
+- [x] pydantic pinned to `>= 2.12.5` in `rag_service/pyproject.toml`
 - [x] test-pr772-fix.js test added
 
 ---
