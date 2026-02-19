@@ -5,7 +5,7 @@ import hashlib
 import numpy as np
 import pickle
 from datetime import datetime
-from typing import List, Dict, Optional, Any, Union, Tuple
+from typing import List, Optional, Tuple
 import time
 import traceback
 
@@ -13,10 +13,9 @@ import requests
 import uvicorn
 from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from dotenv import load_dotenv
 from tqdm import tqdm
-import torch
 from sentence_transformers import SentenceTransformer, CrossEncoder
 import chromadb
 from chromadb.utils import embedding_functions
@@ -154,9 +153,11 @@ class GlobalState:
                     "chroma_ready": self.system_status.chroma_ready,
                     "bm25_ready": self.system_status.bm25_ready,
                 },
-                "indexed_document_ids": list(self.data_manager.indexed_document_ids)
-                if self.data_manager
-                else list(self._indexed_document_ids),
+                "indexed_document_ids": (
+                    list(self.data_manager.indexed_document_ids)
+                    if self.data_manager
+                    else list(self._indexed_document_ids)
+                ),
             }
 
             with open(STATE_FILE, "w", encoding="utf-8") as f:
@@ -1134,7 +1135,7 @@ class SearchEngine:
                             "content": doc["content"],
                         }
                     )
-                except IndexError as e:
+                except IndexError:
                     logger.error(
                         f"Document index out of range: {i} (max: {len(self.documents) - 1})"
                     )
@@ -1194,9 +1195,11 @@ class SearchEngine:
                                 "title": doc["title"],
                                 "correspondent": doc["correspondent"],
                                 "date": doc["created"],
-                                "score": float(distance)
-                                if isinstance(distance, (int, float))
-                                else 1.0,
+                                "score": (
+                                    float(distance)
+                                    if isinstance(distance, (int, float))
+                                    else 1.0
+                                ),
                                 "content": doc["content"],
                             }
                         )
@@ -1310,9 +1313,11 @@ class SearchEngine:
             pairs = [
                 (
                     query,
-                    f"{result['title']} {result['content'][:500]}"
-                    if "content" in result and result["content"]
-                    else result.get("title", ""),
+                    (
+                        f"{result['title']} {result['content'][:500]}"
+                        if "content" in result and result["content"]
+                        else result.get("title", "")
+                    ),
                 )
                 for result in results
             ]
@@ -1885,6 +1890,7 @@ async def startup_event():
                     logger.info("Post-startup initialization of search engine")
                     # Run indexing without forcing refresh but allow rebuild of indexes
                     run_indexing(force_update=False)
+
         else:
             # If we're missing documents, initialize without loading
             logger.info("Not all required data found for auto-loading")
@@ -2376,4 +2382,3 @@ if __name__ == "__main__":
                 global_state.search_engine.initialize(force_update=True)
 
     uvicorn.run("main:app", host=args.host, port=args.port, reload=False)
-
