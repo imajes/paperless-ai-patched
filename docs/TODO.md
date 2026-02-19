@@ -44,7 +44,7 @@ These are ongoing — no single fix resolves them permanently:
 
 ## 🐛 Code Quality
 
-- [ ] 50+ Markdown linting warnings in `COPILOT.md` (missing blank lines around headings, lists, code blocks). Fix with `npx markdownlint-cli2 --fix "*.md"`. Low priority / cosmetic.
+- [ ] Run a Markdown lint/cleanup pass across remaining docs (`README.md`, `docs/website/*.md`, `AGENTS.md`) to keep formatting consistent. Low priority / cosmetic.
 
 ---
 
@@ -138,7 +138,7 @@ These are ongoing — no single fix resolves them permanently:
 - [x] `no-new-privileges: true` in `docker-compose.yml`
 - [x] Dynamic health-check port in Dockerfile (`${PAPERLESS_AI_PORT:-3000}`)
 - [x] Swagger / OpenAPI documentation implemented
-- [x] COPILOT.md developer documentation created
+- [x] Contributor documentation consolidated in `AGENTS.md` and `docs/`
 - [x] GitHub workflow migrated from Docker Hub to GHCR (uses `GITHUB_TOKEN` — no external secret needed)
 - [x] pydantic pinned to `>= 2.12.5` in `rag_service/pyproject.toml`
 - [x] test-pr772-fix.js test added

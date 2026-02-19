@@ -1,61 +1,33 @@
-# Included Fixes & Patches
+# Included Fixes Folder Guide
 
-This directory documents all upstream pull requests, community fixes, and patches that have been integrated into this fork.
+This folder stores fix documentation and patch notes for this fork.
+The complete fix inventory lives in [`FIX_LIST.md`](FIX_LIST.md).
 
-## 📋 Structure
+## What Lives Here
 
-Each subdirectory represents an integrated fix with:
-- `README.md` - Description, rationale, and status
-- `*.patch` - Git patch file (if applicable)
-- Test files or related documentation
+- One folder per fix, for example `PR-772-infinite-retry-fix/` or `SEC-002-urllib3-cve-2026-21441/`
+- A local `README.md` in each fix folder with:
+  - background/context
+  - implementation summary
+  - verification notes
+  - upstream status (if applicable)
+- The consolidated index in `FIX_LIST.md`
 
-## 🔄 Integrated Fixes
+## Naming Conventions
 
-### Upstream PRs
+- Upstream PRs: `PR-<number>-<short-slug>/`
+- Internal fixes: `<AREA>-<number>-<short-slug>/` (examples: `DEP-002-*`, `DOCKER-001-*`)
+- Keep slugs short and stable; avoid renaming directories after links are shared.
 
-| PR | Title | Status | Integration Date |
-|----|-------|--------|------------------|
-| [#772](PR-772-infinite-retry-fix/) | Fix infinite retry loop | ✅ Merged | 2025-12-03 |
-| [#747](PR-747-history-cleanup/) | History validation tool | ✅ Merged | 2025-12-03 |
+## How To Add Or Update A Fix
 
-### Performance Optimizations
+1. Create or update the fix directory under `docs/included_fixes/`.
+2. Edit that folder's `README.md` with what changed and how to validate it.
+3. Add or update the entry in [`FIX_LIST.md`](FIX_LIST.md).
+4. If this is a major multi-commit stream, include a compact summary row in the workstream section of `FIX_LIST.md`.
 
-| ID | Title | Status | Integration Date |
-|----|-------|--------|------------------|
-| [PERF-001](PERF-001-history-pagination/) | History table SQL pagination & caching | ✅ Applied | 2025-12-03 |
+## Maintenance Checklist
 
-### Community Patches
-
-| ID | Title | Status | Integration Date |
-|----|-------|--------|------------------|
-| [DEP-001](DEP-001-remove-sqlite3/) | Remove unused sqlite3 dependency | ✅ Applied | 2025-12-03 |
-| [DEP-002](DEP-002-openai-v6-upgrade/) | OpenAI SDK v6 Upgrade & GPT-5 Migration | ✅ Applied | 2026-02-17 |
-| [DOCKER-001](DOCKER-001-optimize-images/) | Docker image optimization | ✅ Applied | 2025-12-03 |
-| [DOCKER-002](DOCKER-002-upgrade-nodejs-24-lts/) | Upgrade Node.js to 24 LTS | ✅ Applied | 2025-12-18 |
-| [UI-001](UI-001-hide-rag-menu-lite/) | Hide RAG menu in Lite image | ✅ Applied | 2025-12-04 |
-| [UI-002](UI-002-system-prompt-extraction/) | Extract system prompt to markdown file | ✅ Applied | 2026-02-17 |
-| [CI-001](CI-001-auto-version-tagging/) | Automatic version tagging for builds | ✅ Applied | 2025-12-04 |
-| [SEC-001](SEC-001-ssrf-code-injection/) | SSRF & Code Injection Fixes | ✅ Applied | 2025-12-03 |
-| [SEC-002](SEC-002-urllib3-cve-2026-21441/) | Fix urllib3 decompression-bomb (CVE-2026-21441) | ✅ Applied | 2026-01-09 |
-
-## 🚀 How to Use
-
-Each fix directory contains:
-1. **Background** - Why this fix was needed
-2. **Changes** - What was modified
-3. **Testing** - How to verify the fix
-4. **Upstream Status** - Whether it's been merged upstream
-
-## 📝 Adding New Fixes
-
-When integrating a new fix:
-1. Create a new directory: `PR-XXX-short-name/` or `PATCH-XXX-short-name/`
-2. Add `README.md` with fix details
-3. Optionally add `.patch` file: `git format-patch -1 <commit-hash>`
-4. Update this table
-
-## 🔗 Links
-
-- **Upstream Repository**: [clusterzx/paperless-ai](https://github.com/clusterzx/paperless-ai)
-- **Upstream PRs**: [Pull Requests](https://github.com/clusterzx/paperless-ai/pulls)
-- **Our Issues**: [Fork Issues](https://github.com/Admonstrator/paperless-ai-patched/issues)
+- Links in `FIX_LIST.md` resolve correctly.
+- IDs match commit or PR references.
+- Status wording stays consistent (`Applied`, `Merged`, `Superseded`).

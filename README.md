@@ -38,13 +38,13 @@ This is a **community-maintained integration fork** that:
 - ✅ Security: Authentication added to all history endpoints
 
 **Docker Optimizations**:
-- 📦 **DOCKER-001**: Optimized images (Lite ~400MB, Full ~1.2GB)
+- 📦 **DOCKER-001**: Optimized images (Lite ~500-700MB, Full ~1.5-2GB)
 - 🏗️ Separate build/push workflow for reliability
 - 🔧 Multi-stage builds with clean dependency installation
 
 **Documentation**:
-- 📚 Comprehensive COPILOT.md for developers and AI assistants
-- 📋 Detailed fix documentation in `Included_Fixes/`
+- 📋 Consolidated fix index in `docs/included_fixes/FIX_LIST.md`
+- 📚 Contributor guidance in `AGENTS.md`
 - 🔗 Swagger API documentation improvements
 
 **UI/UX**:
@@ -52,26 +52,6 @@ This is a **community-maintained integration fork** that:
 - 📱 Responsive mobile menu
 - ⏱️ Real-time progress bars with step counts
 - 🎨 Improved loading indicators
-
-### 📋 Integrated Fixes
-
-All fixes are documented in [`Included_Fixes/`](Included_Fixes/) with detailed implementation notes:
-
-| Category | Fix ID | Description | Status |
-|----------|--------|-------------|--------|
-| **Upstream PRs** | [PR-772](Included_Fixes/PR-772-infinite-retry-fix/) | Fix infinite retry loop | ✅ Merged |
-| | [PR-747](Included_Fixes/PR-747-history-cleanup/) | History validation tool | ✅ Merged |
-| **Performance** | [PERF-001](Included_Fixes/PERF-001-history-pagination/) | SQL pagination & tag caching | ✅ Applied |
-| **Security** | [SEC-001](Included_Fixes/SEC-001-ssrf-code-injection/) | SSRF & code injection fixes | ✅ Applied |
-| **Security** | [SEC-002](Included_Fixes/SEC-002-urllib3-cve-2026-21441/) | Fix urllib3 decompression-bomb (CVE-2026-21441) | ✅ Applied |
-| **Docker** | [DOCKER-001](Included_Fixes/DOCKER-001-optimize-images/) | Optimized Docker images | ✅ Applied |
-| **Docker** | [DOCKER-002](Included_Fixes/DOCKER-002-upgrade-nodejs-24-lts/) | Upgrade to Node.js 24 LTS | ✅ Applied |
-| **Dependencies** | [DEP-001](Included_Fixes/DEP-001-remove-sqlite3/) | Remove unused sqlite3 | ✅ Applied |
-| **Dependencies** | [DEP-002](Included_Fixes/DEP-002-openai-v6-upgrade/) | OpenAI SDK v6 & GPT-5 migration | ✅ Applied |
-| **UI/UX** | [UI-002](Included_Fixes/UI-002-system-prompt-extraction/) | Extract system prompt to markdown | ✅ Applied |
-| **CI/CD** | [CI-001](Included_Fixes/CI-001-auto-version-tagging/) | Automatic version tagging | ✅ Applied |
-
-Full details: [`Included_Fixes/README.md`](Included_Fixes/README.md)
 
 ---
 
@@ -156,6 +136,7 @@ Images are automatically built and published via GitHub Actions on every push to
 - Health monitoring and auto-restart
 - Persistent volumes and graceful shutdown
 - Works out of the box with minimal setup
+- Split runtime architecture (`paperless-ai` + `rag-service`) via `docker-compose.yml`
 - Multi-arch support (amd64, arm64)
 
 ---
@@ -165,6 +146,10 @@ Images are automatically built and published via GitHub Actions on every push to
 ```bash
 # Install dependencies
 npm install
+
+# (Optional) start local RAG service in a second terminal
+uv sync --project rag_service
+uv run --project rag_service python rag_service/main.py --host 127.0.0.1 --port 8000 --initialize
 
 # Start development/test mode
 npm run test

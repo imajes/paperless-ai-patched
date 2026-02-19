@@ -3,7 +3,7 @@
 ## Project Structure & Module Organization
 `server.js` is the main Express entry point. API routes are in `routes/`, business logic and provider integrations are in `services/`, and SQLite access lives in `models/document.js`. UI templates are in `views/` with static assets in `public/css` and `public/js`.  
 The optional RAG backend runs from `rag_service/main.py` (FastAPI). Runtime configuration is centralized in `config/config.js` and environment values come from `data/.env` (see `.env.example`).  
-Use `tests/` for executable regression scripts and `Included_Fixes/` for documenting integrated fixes in this fork.
+Use `tests/` for executable regression scripts and `docs/included_fixes/` for documenting integrated fixes in this fork.
 
 ## Build, Test, and Development Commands
 - `npm install`: install Node dependencies.
@@ -25,7 +25,7 @@ No enforced coverage threshold exists; contributors should include at least one 
 
 ## Commit & Pull Request Guidelines
 Prefer Conventional Commit prefixes used in project history: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`. Keep subjects concise and imperative.  
-Open PRs with: clear summary, linked issue(s), test evidence (commands + results), and screenshots for UI changes. For fork-specific integrations, also document the change under `Included_Fixes/<TYPE>-<NNN>-<slug>/README.md` and update `Included_Fixes/README.md`.
+Open PRs with: clear summary, linked issue(s), test evidence (commands + results), and screenshots for UI changes. For fork-specific integrations, also document the change under `docs/included_fixes/<TYPE>-<NNN>-<slug>/README.md` and update `docs/included_fixes/README.md`.
 
 ## Security & Configuration Tips
 Do not commit secrets, `.env` files, or `data/` contents. Keep API keys in environment variables only.  

@@ -105,7 +105,7 @@ Complete modernization in 4 phases:
 - ✅ Added o3-mini to dropdown
 - ✅ Removed GPT-4o-mini from dropdown
 
-**services/chatService.js, COPILOT.md, routes/setup.js, services/setupService.js, docs/openapi/openapi.json**:
+**services/chatService.js, AGENTS.md, routes/setup.js, services/setupService.js, docs/openapi/openapi.json**:
 - ✅ Updated default model references: gpt-4/gpt-4o-mini → gpt-5-nano
 
 ### Test Files Added
