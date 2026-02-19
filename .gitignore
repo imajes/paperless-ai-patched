@@ -1,46 +1,39 @@
-.env
-.env.bak
-.dockerignore
-data/
-node_modules/
-api-test.ps1
-openai_debug.log
-prompt.bak
-data bak/
-data_bak/
-data_*/
+# Environment & secrets
 .env*
-docker-compose-dev.yml
+
+# Runtime data
+data/
+data_*/
+/chromadb/
 public/images/
-delete_all.js
 documents.json
-apitest.js
-logs/*
-api_correspondent.js
-prompt.txt
-api_test_r1.js
-openrouter.js
-/chromadb
-rag_config.conf
-indexed.conf
-indexing_complete.flag
-RAGZ_README.md
 
-# Local development files
-.local/
-*.local.*
-/chromadb
-/chromadb/*
+# Runtime state
 rag_config.conf
 indexed.conf
-main.py.bak
 indexing_complete.flag
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Node.js
+node_modules/
+
+# Python
 __pycache__/
-main.pyy*
-rag.ejs.old
+*.pyc
 surya_env/
-ocr_server.py
-surya_models.py
 
-# AI context files (auto-generated)
-COPILOT.md
+# Local dev overrides
+docker-compose-dev.yml
+.local/
+prompt.txt
+
+# Backup & temp files
+*.bak
+*.old
+
+# OS
+.DS_Store

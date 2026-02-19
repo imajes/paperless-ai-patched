@@ -115,7 +115,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
  *               $ref: '#/components/schemas/Error'
  */
 app.get('/api-docs/openapi.json', (req, res) => {
-  const openApiPath = path.join(process.cwd(), 'OPENAPI', 'openapi.json');
+  const openApiPath = path.join(process.cwd(), 'docs', 'openapi', 'openapi.json');
   res.setHeader('Content-Type', 'application/json');
   
   // Try to serve the static file first
@@ -165,14 +165,14 @@ async function initializeDataDirectory() {
 
 // Save OpenAPI specification to file
 async function saveOpenApiSpec() {
-  const openApiDir = path.join(process.cwd(), 'OPENAPI');
+  const openApiDir = path.join(process.cwd(), 'docs', 'openapi');
   const openApiPath = path.join(openApiDir, 'openapi.json');
   try {
     // Ensure the directory exists
     try {
       await fs.access(openApiDir);
     } catch {
-      console.log('Creating OPENAPI directory...');
+      console.log('Creating docs/openapi directory...');
       await fs.mkdir(openApiDir, { recursive: true });
     }
     

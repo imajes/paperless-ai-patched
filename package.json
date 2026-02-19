@@ -23,7 +23,7 @@
       "public/*",
       "views/*",
       "document.json",
-      "OPENAPI/openapi.json"
+      "docs/openapi/openapi.json"
     ]
   },
   "author": "Clusterzx",
